@@ -45,3 +45,6 @@ Thumbs.db
 # Backup folders
 *.bak
 pipeline_backup/
+
+# Log files
+*.log

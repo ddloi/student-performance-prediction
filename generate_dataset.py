@@ -7,14 +7,16 @@ Script sinh dataset 500 sinh viên hoàn chỉnh với 24 cột:
 """
 
 import sys
+from pathlib import Path
 import pandas as pd
 import numpy as np
 
 sys.stdout.reconfigure(encoding="utf-8")
 
-RAW_PATH = r"C:\Users\dangd\.gemini\antigravity-ide\scratch\kaggle_data\simul_combined_lab.csv"
-OUTPUT_PATH = r"C:\Users\dangd\.gemini\antigravity-ide\scratch\kaggle_data\student_dataset_500.csv"
-OUTPUT_PATH_V2 = r"C:\Users\dangd\.gemini\antigravity-ide\scratch\kaggle_data\student_dataset_500_v2.csv"
+BASE_DIR = Path(__file__).resolve().parent
+RAW_PATH = BASE_DIR / "simul_combined_lab.csv"
+OUTPUT_PATH = BASE_DIR / "student_dataset_500.csv"
+# OUTPUT_PATH_V2 removed
 
 # ============================================================
 # 1. DỮ LIỆU GỐC (100 DÒNG KAGGLE)
@@ -178,7 +180,7 @@ df_all = df_all[final_columns]
 
 # Lưu file linh hoạt (phòng trường hợp người dùng đang mở file trên Excel)
 saved_path = None
-for candidate in [OUTPUT_PATH, OUTPUT_PATH_V2, r"C:\Users\dangd\.gemini\antigravity-ide\scratch\kaggle_data\student_dataset_500_v3.csv"]:
+for candidate in [OUTPUT_PATH, OUTPUT_PATH_V2, str(OUTPUT_PATH)]:
     try:
         df_all.to_csv(candidate, index=False, encoding="utf-8-sig")
         saved_path = candidate
@@ -188,7 +190,7 @@ for candidate in [OUTPUT_PATH, OUTPUT_PATH_V2, r"C:\Users\dangd\.gemini\antigrav
         continue
 
 if not saved_path:
-    fallback = r"C:\Users\dangd\.gemini\antigravity-ide\scratch\kaggle_data\student_dataset_500_v4.csv"
+    fallback = str(OUTPUT_PATH)
     df_all.to_csv(fallback, index=False, encoding="utf-8-sig")
     saved_path = fallback
     print(f"Đã lưu vào file: {fallback}")

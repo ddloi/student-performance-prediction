@@ -6,6 +6,7 @@ Script huấn luyện và đánh giá các mô hình Machine Learning:
 """
 
 import sys
+from pathlib import Path
 import pandas as pd
 import numpy as np
 
@@ -19,8 +20,9 @@ from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, R
 from sklearn.svm import SVR
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error, classification_report, accuracy_score, f1_score
 
-DATASET_PATH = r"C:\Users\dangd\.gemini\antigravity-ide\scratch\kaggle_data\student_dataset_500.csv"
-REPORT_PATH = r"C:\Users\dangd\.gemini\antigravity-ide\scratch\kaggle_data\.pipeline\model_training_results.md"
+BASE_DIR = Path(__file__).resolve().parent
+DATASET_PATH = BASE_DIR / "student_dataset_500.csv"
+REPORT_PATH = BASE_DIR / "model_training_results.md"
 
 df = pd.read_csv(DATASET_PATH)
 
@@ -250,7 +252,7 @@ Sử dụng dữ liệu K1 và K2 để dự báo sớm sinh viên khi kết th�
 # ============================================================
 # PHẦN 4: XUẤT BẢNG SO SÁNH CHI TIẾT (DỰ ĐOÁN vs ĐÁP ÁN)
 # ============================================================
-COMPARE_PATH = r"C:\Users\dangd\.gemini\antigravity-ide\scratch\kaggle_data\bang_so_sanh_du_doan.csv"
+COMPARE_PATH = BASE_DIR / "bang_so_sanh_du_doan.csv"
 
 # Dự đoán điểm GPA3
 best_reg = models_reg["Ridge Regression"]

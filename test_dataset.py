@@ -6,14 +6,16 @@ và kiểm tra chống rò rỉ dữ liệu (No Data Leakage).
 """
 
 import sys
+from pathlib import Path
 import pandas as pd
 import numpy as np
 
 sys.stdout.reconfigure(encoding="utf-8")
 
-DATASET_PATH = r"C:\Users\dangd\.gemini\antigravity-ide\scratch\kaggle_data\student_dataset_500.csv"
-ORIGINAL_PATH = r"C:\Users\dangd\.gemini\antigravity-ide\scratch\kaggle_data\simul_combined_lab.csv"
-LOG_PATH = r"C:\Users\dangd\.gemini\antigravity-ide\scratch\kaggle_data\.pipeline\test_results.log"
+BASE_DIR = Path(__file__).resolve().parent
+DATASET_PATH = BASE_DIR / "student_dataset_500.csv"
+ORIGINAL_PATH = BASE_DIR / "simul_combined_lab.csv"
+LOG_PATH = BASE_DIR / "test_results.log"
 
 EXPECTED_COLS = [
     "stud_id",
