@@ -178,22 +178,14 @@ final_columns = [
 
 df_all = df_all[final_columns]
 
-# Lưu file linh hoạt (phòng trường hợp người dùng đang mở file trên Excel)
-saved_path = None
-for candidate in [OUTPUT_PATH, OUTPUT_PATH_V2, str(OUTPUT_PATH)]:
-    try:
-        df_all.to_csv(candidate, index=False, encoding="utf-8-sig")
-        saved_path = candidate
-        print(f"Đã lưu thành công vào file: {candidate}")
-        break
-    except PermissionError:
-        continue
-
-if not saved_path:
-    fallback = str(OUTPUT_PATH)
+# Lưu file
+try:
+    df_all.to_csv(OUTPUT_PATH, index=False, encoding="utf-8-sig")
+    print(f"Đã lưu thành công vào file: {OUTPUT_PATH}")
+except PermissionError:
+    fallback = BASE_DIR / "student_dataset_500_new.csv"
     df_all.to_csv(fallback, index=False, encoding="utf-8-sig")
-    saved_path = fallback
-    print(f"Đã lưu vào file: {fallback}")
+    print(f"File gốc đang bị khóa, đã lưu vào: {fallback}")
 
 print(f"Shape: {df_all.shape}")
 print(f"Danh sách 24 cột: {list(df_all.columns)}")
