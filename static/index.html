@@ -77,6 +77,9 @@
           <button class="preset-chip" onclick="applyPreset('risk')">
             🚨 SV Nguy Cơ Cảnh Báo Thôi Học
           </button>
+          <button class="preset-chip" onclick="applyPreset('downgrade_demo')">
+            ⚖️ Thử Nghiệm: GPA 3.25 (Giỏi) + ĐRL 72 (Khá) ➔ Tổng Khá
+          </button>
           <button class="preset-chip" onclick="applyPreset('actual_491')">
             🎯 SV Thực tế #491 (Test Set: Đáp án 3.43)
           </button>
@@ -194,6 +197,13 @@
                 </div>
 
                 <div class="form-group">
+                  <label class="form-label" for="Diem_Ren_Luyen_K3">
+                    Điểm Rèn Luyện Kỳ 3 Dự Kiến <span class="val-badge" id="val_Diem_Ren_Luyen_K3">80</span>
+                  </label>
+                  <input type="range" class="form-input" id="Diem_Ren_Luyen_K3" min="0" max="100" step="1" value="80" oninput="syncVal('Diem_Ren_Luyen_K3')">
+                </div>
+
+                <div class="form-group" style="grid-column: 1 / -1;">
                   <label class="model-select-label" for="selected_model">
                     ⚙️ Thuật Toán Dự Đoán Hồi Quy:
                   </label>
@@ -246,10 +256,11 @@
           <!-- Mini Stats Grid -->
           <div class="mini-cards-grid">
             <div class="mini-card">
-              <div class="mini-card-label">XẾP LOẠI HỌC LỰC DỰ ĐOÁN</div>
+              <div class="mini-card-label">XẾP LOẠI DỰ ĐOÁN (QUY CHẾ BỘ GD&ĐT)</div>
               <div>
                 <span class="rank-badge rank-gioi" id="res-rank">Giỏi</span>
               </div>
+              <div id="res-rank-note" style="font-size: 0.76rem; color: #f59e0b; margin-top: 0.35rem; display: none; line-height: 1.3;"></div>
             </div>
 
             <div class="mini-card">
@@ -425,7 +436,7 @@
               📋 Bảng Đối Chiếu 146 Sinh Viên Kiểm Thử Độc Lập
             </h2>
             <p style="font-size: 0.85rem; color: var(--text-secondary);" id="dataset-summary-text">
-              Tỷ lệ dự đoán đúng học lực: <strong>91.8% (134/146)</strong> | Sai số GPA trung bình: <strong>0.166</strong>
+              Tỷ lệ dự đoán đúng xếp loại (kết hợp Học lực & ĐRL): <strong>93.2% (136/146)</strong> | Sai số GPA trung bình: <strong>0.165</strong>
             </p>
           </div>
 
@@ -452,8 +463,9 @@
                 <th>GPA3 Thực Tế</th>
                 <th>GPA3 Dự Đoán</th>
                 <th>Độ Lệch |y - ŷ|</th>
-                <th>Học Lực Thực Tế</th>
-                <th>Học Lực Dự Đoán</th>
+                <th>ĐRL Kỳ 3</th>
+                <th>Xếp Loại Thực Tế</th>
+                <th>Xếp Loại Dự Đoán</th>
                 <th>Kết Quả Đối Chiếu</th>
               </tr>
             </thead>

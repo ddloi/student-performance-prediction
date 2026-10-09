@@ -318,23 +318,21 @@ class MLModelManager:
         leave_prob = float(self.clf_leave_model.predict_proba(X_clf_s)[0][1])
         is_leave_risk = leave_prob >= 0.35 or main_gpa < 2.0
 
-        # Phân loại học lực theo quy chế thang điểm 4 (Dựa trên GPA3 dự đoán)
-        if main_gpa >= 3.6:
-            rule_rank = "Xuất sắc"
-        elif main_gpa >= 3.2:
-            rule_rank = "Giỏi"
-        elif main_gpa >= 2.5:
-            rule_rank = "Khá"
-        elif main_gpa >= 2.0:
-            rule_rank = "Trung bình"
-        else:
-            rule_rank = "Yếu"
+        # Điểm rèn luyện kỳ 3 dự kiến (hoặc lấy trung bình K1 và K2 nếu không nhập)
+        drl_k3_input = data.get("Diem_Ren_Luyen_K3")
+        drl_avg_k12 = (float(data["Diem_Ren_Luyen_K1"]) + float(data["Diem_Ren_Luyen_K2"])) / 2
+        drl_eval = float(drl_k3_input) if drl_k3_input is not None else drl_avg_k12
+
+        # Phân loại học lực & rèn luyện tổng hợp theo quy chế Bộ GD&ĐT
+        rank_details = self.evaluate_student_rank(main_gpa, drl_eval)
+        rule_rank = rank_details["final_rank"]
 
         return {
             "selected_model": selected_model,
             "predicted_gpa3": round(main_gpa, 2),
             "predicted_rank_ml": pred_rank,
             "predicted_rank_rule": rule_rank,
+            "rank_details": rank_details,
             "leave_risk": {
                 "is_risk": is_leave_risk,
                 "probability": round(leave_prob * 100, 1),
@@ -350,10 +348,86 @@ class MLModelManager:
                 "gpa1": float(data["gpa1"]),
                 "gpa2": float(data["gpa2"]),
                 "gpa_trend": round(float(data["gpa2"]) - float(data["gpa1"]), 2),
-                "drl_avg": round((float(data["Diem_Ren_Luyen_K1"]) + float(data["Diem_Ren_Luyen_K2"])) / 2, 1),
+                "drl_avg": round(drl_avg_k12, 1),
+                "drl_eval": round(drl_eval, 1),
                 "study_hours_avg": round((float(data["So_Gio_Tu_Hoc_K1"]) + float(data["So_Gio_Tu_Hoc_K2"])) / 2, 1),
                 "activity_total": int(float(data["So_Lan_Tham_Gia_HD_K1"]) + float(data["So_Lan_Tham_Gia_HD_K2"]))
             }
+        }
+
+    @staticmethod
+    def evaluate_student_rank(gpa: float, drl: float) -> dict:
+        """
+        Xếp loại học lực & rèn luyện tổng hợp theo Quy chế đào tạo (Bộ GD&ĐT).
+        Quy tắc:
+        1. Học lực cơ bản theo GPA thang điểm 4:
+           - >= 3.6: Xuất sắc
+           - >= 3.2: Giỏi
+           - >= 2.5: Khá
+           - >= 2.0: Trung bình
+           - < 2.0: Yếu
+        2. Ràng buộc theo Điểm Rèn Luyện (ĐRL thang 100):
+           - ĐRL < 50 (Yếu/Kém): Tối đa chỉ đạt Yếu
+           - ĐRL < 65 (Trung bình): Tối đa chỉ đạt Trung bình
+           - ĐRL < 80 (Khá): Tối đa chỉ đạt Khá (VD: GPA 3.2 Giỏi mà ĐRL Khá -> hạ xuống Khá)
+           - ĐRL < 90 (Tốt): Tối đa chỉ đạt Giỏi (VD: GPA 3.7 Xuất sắc mà ĐRL Tốt -> hạ xuống Giỏi)
+        """
+        # 1. Học lực thuần túy
+        if gpa >= 3.6:
+            academic_rank = "Xuất sắc"
+        elif gpa >= 3.2:
+            academic_rank = "Giỏi"
+        elif gpa >= 2.5:
+            academic_rank = "Khá"
+        elif gpa >= 2.0:
+            academic_rank = "Trung bình"
+        else:
+            academic_rank = "Yếu"
+
+        # 2. Xếp loại ĐRL thuần túy
+        if drl >= 90:
+            drl_rank = "Xuất sắc"
+        elif drl >= 80:
+            drl_rank = "Tốt"
+        elif drl >= 65:
+            drl_rank = "Khá"
+        elif drl >= 50:
+            drl_rank = "Trung bình"
+        else:
+            drl_rank = "Yếu"
+
+        # 3. Ràng buộc khống chế theo ĐRL
+        final_rank = academic_rank
+        downgraded = False
+        reason = ""
+
+        if drl < 50:
+            if final_rank != "Yếu":
+                final_rank = "Yếu"
+                downgraded = True
+                reason = "Bị hạ xuống Yếu do ĐRL Kém/Yếu (< 50)"
+        elif drl < 65:
+            if final_rank in ["Xuất sắc", "Giỏi", "Khá"]:
+                final_rank = "Trung bình"
+                downgraded = True
+                reason = f"Bị hạ xuống Trung bình do ĐRL mức Trung bình ({drl:.0f} điểm < 65)"
+        elif drl < 80:
+            if final_rank in ["Xuất sắc", "Giỏi"]:
+                final_rank = "Khá"
+                downgraded = True
+                reason = f"Bị hạ xuống Khá do ĐRL mức Khá ({drl:.0f} điểm < 80)"
+        elif drl < 90:
+            if final_rank == "Xuất sắc":
+                final_rank = "Giỏi"
+                downgraded = True
+                reason = f"Bị hạ xuống Giỏi do ĐRL mức Tốt ({drl:.0f} điểm < 90)"
+
+        return {
+            "final_rank": final_rank,
+            "academic_rank": academic_rank,
+            "drl_rank": drl_rank,
+            "downgraded": downgraded,
+            "reason": reason
         }
 
     def get_regression_equation(self):

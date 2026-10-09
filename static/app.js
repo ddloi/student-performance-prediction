@@ -32,17 +32,22 @@ const PRESETS = {
   risk: {
     gpa1: 1.85, Tin_Chi_K1: 12, So_Gio_Tu_Hoc_K1: 3, So_Lan_Tham_Gia_HD_K1: 0, Diem_Ren_Luyen_K1: 50,
     gpa2: 1.20, Tin_Chi_K2: 9, So_Gio_Tu_Hoc_K2: 1, So_Lan_Tham_Gia_HD_K2: 0, Diem_Ren_Luyen_K2: 40,
-    Tin_Chi_K3: 12
+    Tin_Chi_K3: 12, Diem_Ren_Luyen_K3: 45
+  },
+  downgrade_demo: {
+    gpa1: 3.30, Tin_Chi_K1: 16, So_Gio_Tu_Hoc_K1: 15, So_Lan_Tham_Gia_HD_K1: 3, Diem_Ren_Luyen_K1: 72,
+    gpa2: 3.25, Tin_Chi_K2: 18, So_Gio_Tu_Hoc_K2: 15, So_Lan_Tham_Gia_HD_K2: 3, Diem_Ren_Luyen_K2: 72,
+    Tin_Chi_K3: 16, Diem_Ren_Luyen_K3: 72
   },
   actual_491: {
     gpa1: 3.41, Tin_Chi_K1: 16, So_Gio_Tu_Hoc_K1: 13, So_Lan_Tham_Gia_HD_K1: 2, Diem_Ren_Luyen_K1: 81,
     gpa2: 3.42, Tin_Chi_K2: 17, So_Gio_Tu_Hoc_K2: 15, So_Lan_Tham_Gia_HD_K2: 3, Diem_Ren_Luyen_K2: 84,
-    Tin_Chi_K3: 16
+    Tin_Chi_K3: 16, Diem_Ren_Luyen_K3: 84
   },
   actual_392: {
     gpa1: 3.37, Tin_Chi_K1: 17, So_Gio_Tu_Hoc_K1: 16, So_Lan_Tham_Gia_HD_K1: 4, Diem_Ren_Luyen_K1: 88,
     gpa2: 3.96, Tin_Chi_K2: 19, So_Gio_Tu_Hoc_K2: 24, So_Lan_Tham_Gia_HD_K2: 5, Diem_Ren_Luyen_K2: 94,
-    Tin_Chi_K3: 18
+    Tin_Chi_K3: 18, Diem_Ren_Luyen_K3: 92
   }
 };
 
@@ -125,7 +130,8 @@ function getFormData() {
     So_Lan_Tham_Gia_HD_K2: parseFloat(document.getElementById("So_Lan_Tham_Gia_HD_K2").value),
     Diem_Ren_Luyen_K2: parseFloat(document.getElementById("Diem_Ren_Luyen_K2").value),
 
-    Tin_Chi_K3: parseFloat(document.getElementById("Tin_Chi_K3").value || 16),
+    Tin_Chi_K3: parseFloat(document.getElementById("Tin_Chi_K3")?.value || 16),
+    Diem_Ren_Luyen_K3: parseFloat(document.getElementById("Diem_Ren_Luyen_K3")?.value || 80),
     selected_model: document.getElementById("selected_model").value
   };
 }
@@ -170,13 +176,25 @@ function renderPredictionResults(res, input) {
 
   // 2. Rank Badge
   const rankEl = document.getElementById("res-rank");
-  rankEl.innerText = res.predicted_rank_ml;
+  const rankNoteEl = document.getElementById("res-rank-note");
+  const finalRank = res.predicted_rank_rule || res.predicted_rank_ml;
+  rankEl.innerText = finalRank;
   rankEl.className = "rank-badge";
-  if (res.predicted_rank_ml === "Xuất sắc") rankEl.classList.add("rank-xuat-sac");
-  else if (res.predicted_rank_ml === "Giỏi") rankEl.classList.add("rank-gioi");
-  else if (res.predicted_rank_ml === "Khá") rankEl.classList.add("rank-kha");
-  else if (res.predicted_rank_ml === "Trung bình") rankEl.classList.add("rank-tb");
+  if (finalRank === "Xuất sắc") rankEl.classList.add("rank-xuat-sac");
+  else if (finalRank === "Giỏi") rankEl.classList.add("rank-gioi");
+  else if (finalRank === "Khá") rankEl.classList.add("rank-kha");
+  else if (finalRank === "Trung bình") rankEl.classList.add("rank-tb");
   else rankEl.classList.add("rank-yeu");
+
+  if (rankNoteEl && res.rank_details) {
+    if (res.rank_details.downgraded) {
+      rankNoteEl.innerText = `⚠️ ${res.rank_details.reason}`;
+      rankNoteEl.style.display = "block";
+    } else {
+      rankNoteEl.innerText = `Chuẩn quy chế (Học lực: ${res.rank_details.academic_rank}, ĐRL: ${res.rank_details.drl_rank})`;
+      rankNoteEl.style.display = "block";
+    }
+  }
 
   // 3. Risk Alert Badge
   const risk = res.leave_risk;
@@ -452,6 +470,7 @@ async function loadTestSamples(page = 1) {
         <td><strong>${row.gpa3_DAP_AN.toFixed(2)}</strong></td>
         <td>${row.gpa3_DU_DOAN.toFixed(2)}</td>
         <td>${row.Do_Lech_GPA.toFixed(2)}</td>
+        <td>${row.Diem_Ren_Luyen_K3 !== undefined ? row.Diem_Ren_Luyen_K3 : "-"}</td>
         <td>${row.Hoc_Luc_DAP_AN}</td>
         <td>${row.Hoc_Luc_DU_DOAN}</td>
         <td>

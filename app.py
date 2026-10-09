@@ -50,6 +50,7 @@ class StudentInput(BaseModel):
     Diem_Ren_Luyen_K2: float = Field(..., ge=0.0, le=100.0, description="Điểm rèn luyện K2")
 
     Tin_Chi_K3: float = Field(16.0, ge=0.0, le=30.0, description="Số tín chỉ đăng ký kỳ 3")
+    Diem_Ren_Luyen_K3: Optional[float] = Field(None, ge=0.0, le=100.0, description="Điểm rèn luyện kỳ 3 dự kiến (tuỳ chọn)")
     selected_model: str = Field(
         "Linear Regression (Scratch GD)",
         description="Mô hình hồi quy được lựa chọn"

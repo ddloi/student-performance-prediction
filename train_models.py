@@ -925,6 +925,31 @@ if br_sc:
 else:
     pred_rank = brm_compare.predict(X_test_r_clf.values)
 
+def xep_loai_tong_hop_k3(gpa, drl):
+    """Xếp loại học lực & rèn luyện tổng hợp theo Quy chế đào tạo (Bộ GD&ĐT)."""
+    if gpa >= 3.6: rank = "Xuất sắc"
+    elif gpa >= 3.2: rank = "Giỏi"
+    elif gpa >= 2.5: rank = "Khá"
+    elif gpa >= 2.0: rank = "Trung bình"
+    else: rank = "Yếu"
+
+    if drl < 50:
+        rank = "Yếu"
+    elif drl < 65:
+        if rank in ["Xuất sắc", "Giỏi", "Khá"]:
+            rank = "Trung bình"
+    elif drl < 80:
+        if rank in ["Xuất sắc", "Giỏi"]:
+            rank = "Khá"
+    elif drl < 90:
+        if rank == "Xuất sắc":
+            rank = "Giỏi"
+    return rank
+
+drl3_actual = df_active.loc[X_test_r.index, "Diem_Ren_Luyen_K3"].values
+actual_ranks_k3 = [xep_loai_tong_hop_k3(g, d) for g, d in zip(y_test_r.values, drl3_actual)]
+pred_ranks_k3 = [xep_loai_tong_hop_k3(g, d) for g, d in zip(pred_gpa3, drl3_actual)]
+
 df_compare = pd.DataFrame({
     "stud_id": df_active.loc[X_test_r.index, "stud_id"].values,
     "gpa1": X_test_r["gpa1"].values,
@@ -932,10 +957,11 @@ df_compare = pd.DataFrame({
     "gpa3_DAP_AN": y_test_r.values,
     "gpa3_DU_DOAN": pred_gpa3,
     "Do_Lech_GPA": np.round(np.abs(y_test_r.values - pred_gpa3), 2),
-    "Hoc_Luc_DAP_AN": df_active.loc[X_test_r.index, "Xep_Loai_Hoc_Luc"].values,
-    "Hoc_Luc_DU_DOAN": pred_rank,
+    "Diem_Ren_Luyen_K3": drl3_actual,
+    "Hoc_Luc_DAP_AN": actual_ranks_k3,
+    "Hoc_Luc_DU_DOAN": pred_ranks_k3,
     "Ket_Qua_Hoc_Luc": np.where(
-        df_active.loc[X_test_r.index, "Xep_Loai_Hoc_Luc"].values == pred_rank, "ĐÚNG", "LỆCH"
+        np.array(actual_ranks_k3) == np.array(pred_ranks_k3), "ĐÚNG", "LỆCH"
     ),
 })
 

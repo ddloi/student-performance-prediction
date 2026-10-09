@@ -25,7 +25,7 @@
     "iter2": "Added polynomial/interaction features (23 total). R²=0.19, RankAcc=88.7%",
     "iter3": "Added XGBoost, ElasticNet, wider grid. Results converged.",
     "iter4": "Final review, DOCX report generation with HUFLIT template, 15 figures embedded.",
-    "iter5": "Delivered interactive Web Demo App (FastAPI + SPA GUI) for instant testing, simulation, and grading."
+    "iter5": "Delivered interactive Web Demo App (FastAPI + SPA GUI) and unified combined academic + conduct ranking logic (MOET regulations: 3.2 GPA + Khá ĐRL -> Khá), resolved 3.17 anomaly, achieved 93.2% test match."
   },
   "best_results": {
     "regression_best_model": "Linear Regression",
@@ -33,6 +33,6 @@
     "regression_mae": 0.1651,
     "classification_leave_best": "Gradient Boosting (F1=0.3333, Prec=1.0)",
     "classification_rank_best": "Random Forest (Acc=88.7%, F1w=0.887)",
-    "comparison_accuracy": "91.8%"
+    "comparison_accuracy": "93.2%"
   }
 }

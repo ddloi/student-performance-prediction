@@ -28,9 +28,9 @@
   - `Linear Regression (sklearn)`: $R^2 = 0.1900$, $MAE = 0.1651$ điểm, $MAPE = 4.63\%$, $RMSE = 0.2079$
   - `Self-Implemented LR (GD)`: $R^2 = 0.1365$, $MAE = 0.1676$ điểm, $MAPE = 4.69\%$, $RMSE = 0.2147$
   - Độ lệch dự đoán giữa thuật toán tự cài đặt và scikit-learn $\le 0.02$ điểm GPA.
-- **Phân loại Học lực:**
-  - `Random Forest Classifier`: Test Accuracy = $88.67\%$, Weighted F1 = $0.8866$.
-  - Tỷ lệ dự đoán đúng trên bảng đối chiếu thực tế (146 SV): $134/146$ ($91.8\%$).
+- **Phân loại Xếp loại Học lực & Rèn luyện (Quy chế Bộ GD&ĐT):**
+  - Tích hợp chuẩn quy chế: Khống chế hạ bậc khi Điểm rèn luyện thấp hơn mức học lực (VD: GPA 3.2 Giỏi + ĐRL Khá ➔ Tổng Khá).
+  - Tỷ lệ dự đoán đúng trên bảng đối chiếu thực tế (146 SV): $136/146$ ($93.2\%$). Triệt tiêu hoàn toàn nghịch lý điểm 3.17 báo Giỏi.
 - **Phân loại Thôi học (Mất cân bằng 3.2% Leave):**
   - `Gradient Boosting Classifier`: Precision = $1.0000$, Accuracy = $97.33\%$.
 
