@@ -237,6 +237,7 @@ function renderPredictionResults(res, input) {
   const risk = res.leave_risk;
   const riskEl = document.getElementById("res-risk");
   const riskText = document.getElementById("res-risk-text");
+  const riskNoteEl = document.getElementById("res-risk-note");
   if (risk.level === "CẢNH BÁO CAO") {
     riskEl.className = "risk-badge risk-danger";
     riskText.innerText = `CẢNH BÁO CAO (${risk.probability}%)`;
@@ -246,6 +247,11 @@ function renderPredictionResults(res, input) {
   } else {
     riskEl.className = "risk-badge risk-safe";
     riskText.innerText = `AN TOÀN (${risk.probability}% rủi ro)`;
+  }
+
+  if (riskNoteEl && risk.description) {
+    riskNoteEl.innerText = risk.description;
+    riskNoteEl.style.display = "block";
   }
 
   // 4. Comparison Table

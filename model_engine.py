@@ -318,31 +318,31 @@ class MLModelManager:
         leave_prob = float(self.clf_leave_model.predict_proba(X_clf_s)[0][1])
 
         # Quy chế Cảnh Báo Học Vụ (Thông tư 08/2021/TT-BGDĐT):
-        # 1. Sinh viên có GPA dự đoán < 2.00 hoặc GPA kỳ 2 < 1.60: CẢNH BÁO CAO (Nguy cơ buộc thôi học)
-        # 2. Sinh viên có GPA dự đoán 2.00 - 2.49 KÈM rủi ro cao (trend tụt dốc mạnh, nợ tín chỉ): CẦN LƯU Ý
-        # 3. Sinh viên có GPA >= 2.50 (Khá, Giỏi, Xuất sắc): HOÀN TOÀN AN TOÀN (Tuyệt đối không cảnh báo học vụ!)
+        # CHỈ dựa trên trung bình GPA 3 kỳ — ĐRL KHÔNG ảnh hưởng đến cảnh báo thôi học.
+        # 1. TB GPA 3 kỳ < 2.00: CẢNH BÁO CAO (Nguy cơ buộc thôi học)
+        # 2. TB GPA 3 kỳ 2.00 - 2.49 kèm xu hướng giảm: CẦN LƯU Ý
+        # 3. TB GPA 3 kỳ >= 2.50: AN TOÀN (không cảnh báo)
         gpa1_val = float(data.get("gpa1", 3.0))
         gpa2_val = float(data.get("gpa2", 3.0))
-        gpa_cum_12 = (gpa1_val + gpa2_val) / 2.0
+        gpa_avg_3sem = (gpa1_val + gpa2_val + main_gpa) / 3.0
         gpa_trend = gpa2_val - gpa1_val
         credits_k2 = float(data.get("Tin_Chi_K2", 16.0))
 
-        if main_gpa < 2.00 or gpa2_val < 1.60 or gpa_cum_12 < 1.80:
+        if gpa_avg_3sem < 2.00 or main_gpa < 1.80:
             is_leave_risk = True
             risk_level = "CẢNH BÁO CAO"
             risk_prob = max(round(leave_prob * 100, 1), 78.5)
-            risk_desc = f"GPA tích lũy/K2 hoặc dự đoán ({main_gpa:.2f}) dưới ngưỡng an toàn — Thuộc diện cảnh báo học vụ!"
-        elif main_gpa < 2.50 and (leave_prob >= 0.45 or gpa_trend <= -0.80 or credits_k2 < 12):
+            risk_desc = f"TB GPA 3 kỳ ({gpa_avg_3sem:.2f}) quá thấp — Thuộc diện cảnh báo học vụ!"
+        elif gpa_avg_3sem < 2.50 and (gpa_trend <= -0.80 or credits_k2 < 12 or main_gpa < 2.00):
             is_leave_risk = True
             risk_level = "CẦN LƯU Ý"
             risk_prob = max(round(leave_prob * 100, 1), 42.0)
-            risk_desc = f"Học lực Trung bình ({main_gpa:.2f}) có dấu hiệu giảm sút phong độ hoặc nợ tín chỉ"
+            risk_desc = f"TB GPA 3 kỳ ({gpa_avg_3sem:.2f}) ở mức thấp, có dấu hiệu giảm sút"
         else:
             is_leave_risk = False
             risk_level = "AN TOÀN"
-            # Chuẩn hóa xác suất hiển thị hợp lý cho sinh viên học lực tốt
             risk_prob = min(round(leave_prob * 100, 1), 2.5) if main_gpa >= 3.2 else min(round(leave_prob * 100, 1), 5.5)
-            risk_desc = f"Kết quả học tập ổn định ({main_gpa:.2f} điểm), không có nguy cơ học vụ"
+            risk_desc = f"TB GPA 3 kỳ ({gpa_avg_3sem:.2f}) ổn định, không có nguy cơ học vụ"
 
         # Điểm rèn luyện kỳ 3 dự kiến (hoặc lấy trung bình K1 và K2 nếu không nhập hoặc <= 0)
         drl_k3_input = data.get("Diem_Ren_Luyen_K3")
