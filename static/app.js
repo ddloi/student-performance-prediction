@@ -12,7 +12,7 @@ let weightsChartInstance = null;
 let currentTestPage = 1;
 const pageSize = 12;
 
-// Presets data dictionary
+// Presets data dictionary — Dữ liệu chính xác từ student_dataset_500.csv
 const PRESETS = {
   excellent: {
     gpa1: 3.65, Tin_Chi_K1: 18, So_Gio_Tu_Hoc_K1: 22, So_Lan_Tham_Gia_HD_K1: 5, Diem_Ren_Luyen_K1: 92,
@@ -30,9 +30,9 @@ const PRESETS = {
     Tin_Chi_K3: 14
   },
   risk: {
-    gpa1: 1.85, Tin_Chi_K1: 12, So_Gio_Tu_Hoc_K1: 3, So_Lan_Tham_Gia_HD_K1: 0, Diem_Ren_Luyen_K1: 50,
-    gpa2: 1.20, Tin_Chi_K2: 9, So_Gio_Tu_Hoc_K2: 1, So_Lan_Tham_Gia_HD_K2: 0, Diem_Ren_Luyen_K2: 40,
-    Tin_Chi_K3: 12, Diem_Ren_Luyen_K3: 45
+    gpa1: 1.65, Tin_Chi_K1: 10, So_Gio_Tu_Hoc_K1: 3, So_Lan_Tham_Gia_HD_K1: 0, Diem_Ren_Luyen_K1: 45,
+    gpa2: 1.20, Tin_Chi_K2: 8, So_Gio_Tu_Hoc_K2: 1, So_Lan_Tham_Gia_HD_K2: 0, Diem_Ren_Luyen_K2: 38,
+    Tin_Chi_K3: 12, Diem_Ren_Luyen_K3: 40
   },
   downgrade_demo: {
     gpa1: 3.30, Tin_Chi_K1: 16, So_Gio_Tu_Hoc_K1: 15, So_Lan_Tham_Gia_HD_K1: 3, Diem_Ren_Luyen_K1: 72,
@@ -40,14 +40,19 @@ const PRESETS = {
     Tin_Chi_K3: 16, Diem_Ren_Luyen_K3: 72
   },
   actual_491: {
-    gpa1: 3.41, Tin_Chi_K1: 16, So_Gio_Tu_Hoc_K1: 13, So_Lan_Tham_Gia_HD_K1: 2, Diem_Ren_Luyen_K1: 81,
-    gpa2: 3.42, Tin_Chi_K2: 17, So_Gio_Tu_Hoc_K2: 15, So_Lan_Tham_Gia_HD_K2: 3, Diem_Ren_Luyen_K2: 84,
-    Tin_Chi_K3: 16, Diem_Ren_Luyen_K3: 84
+    gpa1: 3.41, Tin_Chi_K1: 22, So_Gio_Tu_Hoc_K1: 26.1, So_Lan_Tham_Gia_HD_K1: 3, Diem_Ren_Luyen_K1: 66,
+    gpa2: 3.42, Tin_Chi_K2: 18, So_Gio_Tu_Hoc_K2: 26.3, So_Lan_Tham_Gia_HD_K2: 9, Diem_Ren_Luyen_K2: 93,
+    Tin_Chi_K3: 15, Diem_Ren_Luyen_K3: 56
   },
   actual_392: {
-    gpa1: 3.37, Tin_Chi_K1: 17, So_Gio_Tu_Hoc_K1: 16, So_Lan_Tham_Gia_HD_K1: 4, Diem_Ren_Luyen_K1: 88,
-    gpa2: 3.96, Tin_Chi_K2: 19, So_Gio_Tu_Hoc_K2: 24, So_Lan_Tham_Gia_HD_K2: 5, Diem_Ren_Luyen_K2: 94,
-    Tin_Chi_K3: 18, Diem_Ren_Luyen_K3: 92
+    gpa1: 3.37, Tin_Chi_K1: 17, So_Gio_Tu_Hoc_K1: 26.6, So_Lan_Tham_Gia_HD_K1: 4, Diem_Ren_Luyen_K1: 74,
+    gpa2: 3.96, Tin_Chi_K2: 17, So_Gio_Tu_Hoc_K2: 26.8, So_Lan_Tham_Gia_HD_K2: 5, Diem_Ren_Luyen_K2: 76,
+    Tin_Chi_K3: 18, Diem_Ren_Luyen_K3: 60
+  },
+  actual_153: {
+    gpa1: 3.45, Tin_Chi_K1: 15, So_Gio_Tu_Hoc_K1: 20.1, So_Lan_Tham_Gia_HD_K1: 2, Diem_Ren_Luyen_K1: 63,
+    gpa2: 3.02, Tin_Chi_K2: 17, So_Gio_Tu_Hoc_K2: 23.7, So_Lan_Tham_Gia_HD_K2: 3, Diem_Ren_Luyen_K2: 67,
+    Tin_Chi_K3: 17, Diem_Ren_Luyen_K3: 63
   }
 };
 
@@ -98,7 +103,12 @@ function syncVal(fieldId, unit = "") {
 function applyPreset(presetKey) {
   const data = PRESETS[presetKey];
   if (!data) return;
+  applyDataToForm(data);
+  triggerPrediction();
+}
 
+// Fill form fields from a data object and sync badges
+function applyDataToForm(data) {
   for (const [key, value] of Object.entries(data)) {
     const el = document.getElementById(key);
     if (el) {
@@ -106,8 +116,35 @@ function applyPreset(presetKey) {
       syncVal(key, key.includes("Tu_Hoc") ? "h" : "");
     }
   }
+}
 
-  triggerPrediction();
+// Load real student data from dataset and predict (1-click from Tab 3)
+async function loadSampleToPredict(studId) {
+  try {
+    const res = await fetch(`/api/student-detail/${studId}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    // Fill form with ground-truth values
+    applyDataToForm(data);
+
+    // Switch to Tab 1 (Prediction)
+    document.querySelectorAll(".nav-tab-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
+    const predictBtn = document.querySelector('[data-tab="tab-predict"]');
+    if (predictBtn) predictBtn.classList.add("active");
+    const predictPane = document.getElementById("tab-predict");
+    if (predictPane) predictPane.classList.add("active");
+
+    // Trigger prediction
+    triggerPrediction();
+
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } catch (err) {
+    console.error("Failed to load student:", err);
+    alert(`Không thể tải dữ liệu SV #${studId}: ` + err.message);
+  }
 }
 
 // Handle Form Submission
@@ -196,13 +233,16 @@ function renderPredictionResults(res, input) {
     }
   }
 
-  // 3. Risk Alert Badge
+  // 3. Risk Alert Badge — 3 bậc: AN TOÀN / CẦN LƯU Ý / CẢNH BÁO CAO
   const risk = res.leave_risk;
   const riskEl = document.getElementById("res-risk");
   const riskText = document.getElementById("res-risk-text");
-  if (risk.is_risk) {
+  if (risk.level === "CẢNH BÁO CAO") {
     riskEl.className = "risk-badge risk-danger";
     riskText.innerText = `CẢNH BÁO CAO (${risk.probability}%)`;
+  } else if (risk.level === "CẦN LƯU Ý") {
+    riskEl.className = "risk-badge risk-warning";
+    riskText.innerText = `CẦN LƯU Ý (${risk.probability}%)`;
   } else {
     riskEl.className = "risk-badge risk-safe";
     riskText.innerText = `AN TOÀN (${risk.probability}% rủi ro)`;
@@ -477,6 +517,11 @@ async function loadTestSamples(page = 1) {
           <span class="badge ${isCorrect ? 'risk-safe' : 'risk-danger'}">
             ${isCorrect ? '✔ ĐÚNG' : '✘ LỆCH'}
           </span>
+        </td>
+        <td>
+          <button class="preset-chip" style="padding:0.25rem 0.6rem;font-size:0.75rem;" onclick="loadSampleToPredict(${row.stud_id})">
+            🔍 Thử
+          </button>
         </td>
       `;
       tbody.appendChild(tr);

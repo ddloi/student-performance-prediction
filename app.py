@@ -168,6 +168,34 @@ def get_test_samples(
     }
 
 
+@app.get("/api/student-detail/{stud_id}")
+def get_student_detail(stud_id: int):
+    """Lấy dữ liệu gốc chi tiết của sinh viên từ dataset để nạp vào Form kiểm thử."""
+    if not DATASET_CSV.exists():
+        raise HTTPException(status_code=404, detail="Không tìm thấy dataset.")
+    df = pd.read_csv(DATASET_CSV)
+    match = df[df["stud_id"] == stud_id]
+    if match.empty:
+        raise HTTPException(status_code=404, detail=f"Không tìm thấy sinh viên #{stud_id}.")
+    row = match.iloc[0]
+    return {
+        "stud_id": int(row["stud_id"]),
+        "gpa1": float(row["gpa1"]),
+        "Tin_Chi_K1": float(row["Tin_Chi_K1"]),
+        "So_Gio_Tu_Hoc_K1": float(row["So_Gio_Tu_Hoc_K1"]),
+        "So_Lan_Tham_Gia_HD_K1": float(row["So_Lan_Tham_Gia_HD_K1"]),
+        "Diem_Ren_Luyen_K1": float(row["Diem_Ren_Luyen_K1"]),
+        "gpa2": float(row["gpa2"]),
+        "Tin_Chi_K2": float(row["Tin_Chi_K2"]),
+        "So_Gio_Tu_Hoc_K2": float(row["So_Gio_Tu_Hoc_K2"]),
+        "So_Lan_Tham_Gia_HD_K2": float(row["So_Lan_Tham_Gia_HD_K2"]),
+        "Diem_Ren_Luyen_K2": float(row["Diem_Ren_Luyen_K2"]),
+        "Tin_Chi_K3": float(row["Tin_Chi_K3"]) if float(row["Tin_Chi_K3"]) > 0 else 16.0,
+        "Diem_Ren_Luyen_K3": float(row["Diem_Ren_Luyen_K3"]) if float(row["Diem_Ren_Luyen_K3"]) > 0 else float(row["Diem_Ren_Luyen_K2"]),
+        "actual_gpa3": float(row["gpa3"]),
+    }
+
+
 @app.get("/download/report")
 def download_report():
     """Tải file Báo cáo Word."""

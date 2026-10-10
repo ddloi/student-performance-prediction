@@ -86,6 +86,9 @@
           <button class="preset-chip" onclick="applyPreset('actual_392')">
             🎯 SV Thực tế #392 (Test Set: Đáp án 3.77)
           </button>
+          <button class="preset-chip" onclick="applyPreset('actual_153')">
+            🎯 SV Thực tế #153 (Test Set: Đáp án 3.17)
+          </button>
         </div>
       </section>
 
@@ -240,15 +243,19 @@
 
             <div class="gauge-bar-wrapper">
               <div class="gauge-track">
-                <div class="gauge-fill" id="res-gauge-fill" style="width: 87.75%;"></div>
+                <div class="gauge-fill" id="res-gauge-fill" style="width: 80.25%;"></div>
+                <div class="gauge-marker" style="left: 50%;" title="Ngưỡng 2.0 (Trung bình)"></div>
+                <div class="gauge-marker" style="left: 62.5%;" title="Ngưỡng 2.5 (Khá)"></div>
+                <div class="gauge-marker" style="left: 80%;" title="Ngưỡng 3.2 (Giỏi)"></div>
+                <div class="gauge-marker" style="left: 90%;" title="Ngưỡng 3.6 (Xuất sắc)"></div>
               </div>
               <div class="gauge-ticks">
-                <span>0.0 (Yếu)</span>
-                <span>2.0 (TB)</span>
-                <span>2.5 (Khá)</span>
-                <span>3.2 (Giỏi)</span>
-                <span>3.6 (Xuất sắc)</span>
-                <span>4.0</span>
+                <span style="left: 0;">0.0 (Yếu)</span>
+                <span style="left: 50%; transform: translateX(-50%);">2.0 (TB)</span>
+                <span style="left: 62.5%; transform: translateX(-50%);">2.5 (Khá)</span>
+                <span style="left: 80%; transform: translateX(-50%); color: #38bdf8; font-weight: 700;">3.2 (Giỏi)</span>
+                <span style="left: 90%; transform: translateX(-50%); color: #a78bfa; font-weight: 700;">3.6 (X.Sắc)</span>
+                <span style="right: 0;">4.0</span>
               </div>
             </div>
           </div>
@@ -467,6 +474,7 @@
                 <th>Xếp Loại Thực Tế</th>
                 <th>Xếp Loại Dự Đoán</th>
                 <th>Kết Quả Đối Chiếu</th>
+                <th>Thao Tác</th>
               </tr>
             </thead>
             <tbody id="test-samples-tbody">
