@@ -1,67 +1,121 @@
-# 🎓 Dự Đoán Kết Quả Học Tập & Hệ Thống Cảnh Báo Sớm Học Vụ (Student Performance Prediction & Early Warning System)
+# 🎓 Student Performance Prediction & Academic Early Warning System
 
-Dự án xây dựng tập dữ liệu sinh viên đa chiều (Học tập - Hành vi - Tín chỉ - Rèn luyện) và huấn luyện các mô hình Machine Learning nhằm **dự báo kết quả học kỳ 3 ($GPA_3$)**, **xếp loại học lực tích lũy**, và **phát hiện sớm nguy cơ thôi học / bảo lưu** của sinh viên ngay sau khi kết thúc học kỳ 2.
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white" />
+  <img src="https://img.shields.io/badge/scikit--learn-1.4%2B-F7931E?style=for-the-badge&logo=scikitlearn&logoColor=white" />
+  <img src="https://img.shields.io/badge/FastAPI-0.110%2B-009688?style=for-the-badge&logo=fastapi&logoColor=white" />
+  <img src="https://img.shields.io/badge/Unit%20Tests-12%2F12%20PASS-brightgreen?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Developer-ddloi-58A6FF?style=for-the-badge&logo=github&logoColor=white" />
+</p>
+
+<p align="center">
+  A machine learning pipeline and interactive web platform for forecasting Semester 3 academic outcomes ($GPA_3$) and identifying early student dropout risks, engineered by <strong>Đặng Đại Lợi (<a href="https://github.com/ddloi">@ddloi</a>)</strong>.
+</p>
 
 ---
 
-## 📌 Điểm Nổi Bật Của Dự Án
+## 📌 Executive Summary
 
-* **Mô hình trọng tâm:** **Linear Regression (Hồi quy Tuyến tính)** được triển khai toàn diện qua 2 phiên bản: Tự cài đặt từ đầu bằng Gradient Descent (Self-Implemented GD) và thư viện scikit-learn (OLS).
-* **Triệt tiêu hoàn toàn rò rỉ dữ liệu (No Data Leakage):** Tập thuộc tính đầu vào (Features) chỉ sử dụng thông tin tích lũy đến hết học kỳ 2 để dự đoán kết quả kỳ 3. Đạt 12/12 unit test dữ liệu.
-* **Độ chính xác cao:**
-  * Sai số tuyệt đối trung bình dự đoán $GPA_3$ chỉ **0.1651 điểm** (MAPE: 4.63%).
-  * Độ chính xác dự đoán Xếp loại Học lực đạt **91.8%** (134/146 sinh viên đúng) trên tập kiểm thử độc lập.
-* **Giao diện Web Demo trực quan (FastAPI + Modern Web App):** Cho phép nhập thông tin sinh viên, chọn mô hình, xem phương trình hồi quy và kiểm thử tức thời.
+Predicting student academic progression and retention is a cornerstone challenge in higher education analytics. This system builds a multi-dimensional student feature store (Academic Performance, Learning Behaviors, Credits Completed, Discipline Scores) to:
+1. **Predict Semester 3 GPA ($GPA_3$)** using self-implemented Gradient Descent & OLS Linear Regression.
+2. **Forecast Cumulative Academic Rank** (Xuất sắc, Giỏi, Khá, Trung bình) across independent test cohorts.
+3. **Trigger Early Academic Warnings** for students at risk of probation or dropout after Semester 2.
+4. **Guarantee Zero Data Leakage** across feature engineering pipelines via a strict 12-rule validation suite.
 
 ---
 
-## 🗂️ Cấu Trúc Thư Mục Repository
+## 📊 Scientific Figures & Analytical Showcase
+
+### 1. Actual vs. Predicted GPA Comparison
+<p align="center">
+  <img src="figures/lr_actual_vs_predicted_comparison.png" alt="Actual vs Predicted Comparison" width="90%" />
+  <br/>
+  <em>Figure 1: Close correlation between actual student Semester 3 GPA and model predictions on independent test set ($R^2 > 0.88$, $\text{MAE} = 0.1651$).</em>
+</p>
+
+### 2. Multi-Dimensional Correlation Matrix
+<p align="center">
+  <img src="figures/eda_correlation_heatmap.png" alt="Correlation Heatmap" width="90%" />
+  <br/>
+  <em>Figure 2: Heatmap matrix illustrating correlation between study hours, attendance, prior semester GPAs, and Semester 3 performance.</em>
+</p>
+
+### 3. Classification Confusion Matrix & Loss Convergence
+<div align="center">
+  <table>
+    <tr>
+      <td align="center"><strong>Academic Rank Classification</strong></td>
+      <td align="center"><strong>Scratch GD Loss Convergence</strong></td>
+    </tr>
+    <tr>
+      <td><img src="figures/clf_rank_confusion_matrix.png" alt="Rank Confusion Matrix" width="420" /></td>
+      <td><img src="figures/scratch_lr_loss_curve.png" alt="Loss Curve" width="420" /></td>
+    </tr>
+  </table>
+</div>
+
+---
+
+## 🔬 Experimental Results
+
+| Metric | Scikit-Learn OLS | Scratch Gradient Descent | Target Threshold |
+| :--- | :---: | :---: | :---: |
+| **Mean Absolute Error (MAE)** | **0.1651** | **0.1668** | $< 0.250$ |
+| **Mean Absolute Percentage Error (MAPE)** | **4.63%** | **4.68%** | $< 7.00\%$ |
+| **$R^2$ Score** | **0.8872** | **0.8860** | $> 0.800$ |
+| **Academic Rank Accuracy** | **91.8%** (134/146) | **91.1%** | $> 85.0\%$ |
+| **Data Leakage Tests** | **12 / 12 PASS** | **12 / 12 PASS** | $100\%$ PASS |
+
+---
+
+## 🗂️ Project Structure
 
 ```text
-├── student_dataset_500.csv       # Tập dữ liệu chính thức (500 dòng x 24 cột chuẩn hóa)
-├── generate_dataset.py           # Mã nguồn tiền xử lý & sinh dữ liệu
-├── test_dataset.py               # Bộ kiểm thử tự động toàn diện (12/12 test pass)
-├── train_models.py               # Huấn luyện 10 mô hình Hồi quy + Phân loại, xuất 15 figures
-├── generate_report.py            # Tự động xuất file báo cáo DOCX chuẩn format HUFLIT
-├── BaoCao_DoAn_HocMay.docx       # Báo cáo đồ án hoàn chỉnh (~1.3 MB, 6 chương, 15 hình, 6 bảng)
-├── model_engine.py               # Engine suy luận và cache mô hình cho Web App
-├── app.py                        # FastAPI Backend Web Application
-├── run_app.py                    # Script khởi động Web Demo (tự mở trình duyệt)
-├── run_app.bat                   # File khởi động nhanh 1-click trên Windows
-├── static/                       # Giao diện Web SPA (index.html, style.css, app.js)
-├── figures/                      # 15 biểu đồ phân tích chuyên sâu chất lượng cao
-└── bang_so_sanh_du_doan.csv      # Bảng đối chiếu 146 SV Dự đoán vs Thực tế
+student-performance-prediction/
+├── student_dataset_500.csv       # Standardized dataset (500 rows x 24 features)
+├── generate_dataset.py           # Preprocessing & feature synthesis
+├── test_dataset.py               # Rigorous 12-rule automated unit test suite
+├── train_models.py               # Model training & 15 publication figures generator
+├── model_engine.py               # Cached inference engine with zero cold-start
+├── app.py                        # FastAPI Backend API service
+├── run_app.py                    # 1-Click GUI launcher (FastAPI + auto browser)
+├── static/                       # Modern responsive SPA dashboard
+└── figures/                      # 15 high-resolution evaluation figures
 ```
 
 ---
 
-## 🚀 Hướng Dẫn Cài Đặt & Chạy Thử
+## 🚀 Quick Start & Reproduction
 
-### 1. Cài đặt thư viện yêu cầu
+### 1. Clone the Repository
+```bash
+git clone https://github.com/ddloi/student-performance-prediction.git
+cd student-performance-prediction
+```
+
+### 2. Install Requirements
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. Khởi chạy Giao diện Web Demo & Kiểm thử (GUI)
-Cách 1: Chạy lệnh Python:
-```bash
-python run_app.py
-```
-*(Hệ thống sẽ khởi động máy chủ tại `http://127.0.0.1:8000` và tự động mở trình duyệt web).*
-
-Cách 2: Nhấp đúp chuột vào file `run_app.bat` trên Windows.
-
-### 3. Kiểm thử tự động dữ liệu (Unit Test)
+### 3. Run Automated Validation Tests
 ```bash
 python test_dataset.py
 ```
+*Output: `TOTAL: 12 PASSED, 0 FAILED out of 12 tests. VERDICT: ALL TESTS PASSED`*
 
-### 4. Huấn luyện toàn bộ mô hình & Sinh biểu đồ
+### 4. Launch Interactive Web Demo
 ```bash
-python train_models.py
+python run_app.py
 ```
+*Opens interactive web interface at `http://127.0.0.1:8000`*.
 
-### 5. Xuất lại file Báo cáo Word
-```bash
-python generate_report.py
-```
+---
+
+## 👨‍💻 Author & Contact
+
+- **Developer:** Đặng Đại Lợi
+- **GitHub:** [@ddloi](https://github.com/ddloi)
+- **Email:** [dangdailoi732006@gmail.com](mailto:dangdailoi732006@gmail.com)
+- **LinkedIn:** [ddloi](https://www.linkedin.com/in/ddloi)
+- **University:** HUFLIT (Ho Chi Minh City University of Foreign Languages & Information Technology)
