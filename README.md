@@ -56,7 +56,9 @@ Predicting student academic progression and retention is a cornerstone challenge
 
 ---
 
-## 🔬 Experimental Results
+## 🔬 Experimental Results & Benchmark
+
+### 1. General Performance Overview
 
 | Metric | Scikit-Learn OLS | Scratch Gradient Descent | Target Threshold |
 | :--- | :---: | :---: | :---: |
@@ -66,6 +68,26 @@ Predicting student academic progression and retention is a cornerstone challenge
 | **Academic Rank Accuracy** | **91.8%** (134/146) | **91.1%** | $> 85.0\%$ |
 | **Data Leakage Tests** | **12 / 12 PASS** | **12 / 12 PASS** | $100\%$ PASS |
 
+### 2. ⚖️ Linear Regression: Self-Implemented (Scratch) vs. Scikit-Learn
+
+To satisfy academic defense and rigorous algorithmic verification, the system provides a side-by-side comparison between **handcrafted implementations** and the industry-standard **Scikit-Learn** library:
+
+<p align="center">
+  <img src="figures/so_sanh_linear_regression.png" alt="So sánh Linear Regression Thủ công vs Thư viện" width="95%" />
+  <br/>
+  <em>Figure 4: Scatter alignment between Scratch GD vs. Sklearn predictions (left) and top feature coefficient weights comparison (right).</em>
+</p>
+
+| Model Implementation | Mathematical Formulation | $R^2$ Train | $R^2$ Test | RMSE | MAE | MAPE (%) | Bias ($b$) | Fit Time |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **1. Manual (Gradient Descent)** | Iterative GD: $w \leftarrow w - \alpha \frac{1}{n} X^T(\hat{y}-y)$ | 0.3693 | 0.1365 | 0.2147 | 0.1676 | 4.69% | 3.5493 | ~300 ms |
+| **2. Manual (Normal Equation)** | Closed-Form OLS: $w = (X^T X)^{-1} X^T y$ | **0.3759** | **0.1900** | **0.2079** | **0.1651** | **4.63%** | **3.5493** | **~17 ms** |
+| **3. Library (Scikit-Learn OLS)** | LAPACK / SVD Decomposition | **0.3759** | **0.1900** | **0.2079** | **0.1651** | **4.63%** | **3.5493** | ~84 ms |
+
+> 💡 **Key Takeaways for Defense / Viva**:
+> - **Exact Convergence**: When applying the analytical **Normal Equation** manually, results match Scikit-Learn **100% across all decimal places**.
+> - **Gradient Descent Convergence**: Scratch GD converges reliably after 5,000 iterations ($\text{RMSE chênh lệch} \approx 0.0068$, sai số trên từng sinh viên $< 0.009$ GPA).
+
 ---
 
 ## 🗂️ Project Structure
@@ -73,14 +95,15 @@ Predicting student academic progression and retention is a cornerstone challenge
 ```text
 student-performance-prediction/
 ├── student_dataset_500.csv       # Standardized dataset (500 rows x 24 features)
+├── compare_linear_regression.py  # Standalone LR comparison script (Scratch vs Library)
 ├── generate_dataset.py           # Preprocessing & feature synthesis
 ├── test_dataset.py               # Rigorous 12-rule automated unit test suite
-├── train_models.py               # Model training & 15 publication figures generator
+├── train_models.py               # Full ML pipeline training & 15 figures generator
 ├── model_engine.py               # Cached inference engine with zero cold-start
 ├── app.py                        # FastAPI Backend API service
 ├── run_app.py                    # 1-Click GUI launcher (FastAPI + auto browser)
 ├── static/                       # Modern responsive SPA dashboard
-└── figures/                      # 15 high-resolution evaluation figures
+└── figures/                      # 16 high-resolution evaluation figures
 ```
 
 ---
@@ -104,7 +127,13 @@ python test_dataset.py
 ```
 *Output: `TOTAL: 12 PASSED, 0 FAILED out of 12 tests. VERDICT: ALL TESTS PASSED`*
 
-### 4. Launch Interactive Web Demo
+### 4. Run Linear Regression Benchmark (Scratch vs Sklearn)
+```bash
+python compare_linear_regression.py
+```
+*Outputs side-by-side performance metrics, sample student predictions, and saves Figure 4 to `figures/so_sanh_linear_regression.png`*.
+
+### 5. Launch Interactive Web Demo
 ```bash
 python run_app.py
 ```

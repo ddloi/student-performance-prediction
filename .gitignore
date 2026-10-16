@@ -48,3 +48,6 @@ pipeline_backup/
 
 # Log files
 *.log
+
+# AI / MCP Cache
+.codebase-memory/
