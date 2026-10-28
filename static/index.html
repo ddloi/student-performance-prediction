@@ -1,598 +1,907 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hệ thống Dự đoán Kết quả Học tập Sinh viên — Đồ Án Học Máy</title>
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- Chart.js CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- App Stylesheet -->
-  <link rel="stylesheet" href="/static/style.css">
-</head>
-<body>
-
-  <!-- App Header -->
-  <header class="app-header">
-    <div class="header-container">
-      <div class="brand-wrapper">
-        <div class="brand-logo">ML</div>
-        <div>
-          <h1 class="brand-title">Hệ Thống Dự Đoán Kết Quả Học Tập Sinh Viên</h1>
-          <p class="brand-sub">Đồ Án Cuối Kỳ Môn Học Máy • HUFLIT — GVHD: TS. Võ Thị Hồng Tuyết</p>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#111827" />
+    <meta
+      name="description"
+      content="Demo đồ án Học máy HUFLIT: dự đoán GPA học kỳ 3, so sánh mô hình và đối chiếu dữ liệu kiểm chứng."
+    />
+    <title>Dự đoán kết quả học tập · HUFLIT</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10' fill='%231d4ed8'/%3E%3Ctext x='24' y='31' font-family='sans-serif' font-size='23' fill='white' text-anchor='middle'%3EML%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/static/style.css" />
+    <script defer src="/static/vendor/chart.umd.js"></script>
+    <script defer src="/static/app.js"></script>
+  </head>
+  <body>
+    <a href="#main-content" class="skip-link">Đến nội dung chính</a>
+    <header class="app-header">
+      <div class="header-container">
+        <a class="brand-wrapper" href="/" aria-label="Trang chủ dự đoán học tập"
+          ><span class="brand-logo" aria-hidden="true">ML</span
+          ><span
+            ><span class="brand-title">Dự đoán học tập</span
+            ><span class="brand-sub">HUFLIT · Đồ án Học máy</span></span
+          ></a
+        >
+        <div class="header-meta">
+          <span class="badge badge-core">Linear Regression</span
+          ><span class="project-credit">Đặng Đại Lợi & Nguyễn Thái Lộc</span>
         </div>
       </div>
-      <div class="header-meta">
-        <span class="badge badge-core">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
-          Mô hình Trọng tâm: Linear Regression
-        </span>
-        <span class="badge badge-author">
-          👨‍🎓 Nhóm SV: Đặng Đại Lợi (NT) & Nguyễn Thái Lộc
-        </span>
-      </div>
-    </div>
-  </header>
-
-  <!-- Navigation Tabs -->
-  <nav class="nav-tabs">
-    <button class="nav-tab-btn active" data-tab="tab-predict">
-      🎯 Kiểm Thử Dự Đoán Cá Nhân
-    </button>
-    <button class="nav-tab-btn" data-tab="tab-models">
-      📊 So Sánh 10 Mô Hình & Phương Trình
-    </button>
-    <button class="nav-tab-btn" data-tab="tab-dataset">
-      📁 Kiểm Thử Tập Kiểm Chứng (146 SV)
-    </button>
-    <button class="nav-tab-btn" data-tab="tab-report">
-      📖 Đánh Giá Đồ Án & Tải Báo Cáo
-    </button>
-  </nav>
-
-  <!-- Main Content Area -->
-  <main class="main-content">
-
-    <!-- ==================== TAB 1: DỰ ĐOÁN CÁ NHÂN ==================== -->
-    <div id="tab-predict" class="tab-pane active">
-      
-      <!-- Presets Selector -->
-      <section class="presets-section">
-        <div class="presets-label">
-          ⚡ Chọn nhanh mẫu sinh viên kiểm thử:
-        </div>
-        <div class="presets-list">
-          <button class="preset-chip" onclick="applyPreset('excellent')">
-            🌟 SV Xuất Sắc (Tiến bộ vượt bậc)
-          </button>
-          <button class="preset-chip" onclick="applyPreset('good')">
-            📘 SV Khá - Giỏi (Ổn định)
-          </button>
-          <button class="preset-chip" onclick="applyPreset('average')">
-            ⚠️ SV Trung Bình (Có dấu hiệu sa sút)
-          </button>
-          <button class="preset-chip" onclick="applyPreset('risk')">
-            🚨 SV Nguy Cơ Cảnh Báo Thôi Học
-          </button>
-          <button class="preset-chip" onclick="applyPreset('downgrade_demo')">
-            ⚖️ Thử Nghiệm: GPA 3.25 (Giỏi) + ĐRL 72 (Khá) ➔ Tổng Khá
-          </button>
-          <button class="preset-chip" onclick="applyPreset('actual_491')">
-            🎯 SV Thực tế #491 (Test Set: Đáp án 3.43)
-          </button>
-          <button class="preset-chip" onclick="applyPreset('actual_392')">
-            🎯 SV Thực tế #392 (Test Set: Đáp án 3.77)
-          </button>
-          <button class="preset-chip" onclick="applyPreset('actual_153')">
-            🎯 SV Thực tế #153 (Test Set: Đáp án 3.17)
-          </button>
-        </div>
-      </section>
-
-      <div class="grid-2col">
-        
-        <!-- Left Column: Input Form -->
-        <div class="card">
-          <h2 class="card-title">
-            📝 Nhập Thông Tin Quá Trình Học Tập (K1 & K2)
-          </h2>
-
-          <form id="prediction-form" onsubmit="handlePredictSubmit(event)">
-            <div class="form-grid">
-              
-              <!-- Semester 1 -->
-              <div class="semester-box">
-                <div class="semester-title">
-                  📌 Học Kỳ 1
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label" for="gpa1">
-                    Điểm GPA K1 <span class="val-badge" id="val_gpa1">3.40</span>
-                  </label>
-                  <input type="range" class="form-input" id="gpa1" min="0.0" max="4.0" step="0.01" value="3.40" oninput="syncVal('gpa1')">
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label" for="Tin_Chi_K1">
-                    Số Tín Chỉ Tích Lũy K1 <span class="val-badge" id="val_Tin_Chi_K1">16</span>
-                  </label>
-                  <input type="number" class="form-input" id="Tin_Chi_K1" min="0" max="25" value="16" oninput="syncVal('Tin_Chi_K1')">
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label" for="So_Gio_Tu_Hoc_K1">
-                    Giờ Tự Học / Tuần K1 <span class="val-badge" id="val_So_Gio_Tu_Hoc_K1">14h</span>
-                  </label>
-                  <input type="range" class="form-input" id="So_Gio_Tu_Hoc_K1" min="0" max="40" step="1" value="14" oninput="syncVal('So_Gio_Tu_Hoc_K1', 'h')">
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label" for="So_Lan_Tham_Gia_HD_K1">
-                    Số Lần Tham Gia Hoạt Động K1 <span class="val-badge" id="val_So_Lan_Tham_Gia_HD_K1">3</span>
-                  </label>
-                  <input type="number" class="form-input" id="So_Lan_Tham_Gia_HD_K1" min="0" max="15" value="3" oninput="syncVal('So_Lan_Tham_Gia_HD_K1')">
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label" for="Diem_Ren_Luyen_K1">
-                    Điểm Rèn Luyện K1 <span class="val-badge" id="val_Diem_Ren_Luyen_K1">82</span>
-                  </label>
-                  <input type="range" class="form-input" id="Diem_Ren_Luyen_K1" min="0" max="100" step="1" value="82" oninput="syncVal('Diem_Ren_Luyen_K1')">
-                </div>
-              </div>
-
-              <!-- Semester 2 -->
-              <div class="semester-box">
-                <div class="semester-title k2">
-                  📌 Học Kỳ 2
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label" for="gpa2">
-                    Điểm GPA K2 <span class="val-badge" id="val_gpa2">3.55</span>
-                  </label>
-                  <input type="range" class="form-input" id="gpa2" min="0.0" max="4.0" step="0.01" value="3.55" oninput="syncVal('gpa2')">
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label" for="Tin_Chi_K2">
-                    Số Tín Chỉ Tích Lũy K2 <span class="val-badge" id="val_Tin_Chi_K2">18</span>
-                  </label>
-                  <input type="number" class="form-input" id="Tin_Chi_K2" min="0" max="25" value="18" oninput="syncVal('Tin_Chi_K2')">
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label" for="So_Gio_Tu_Hoc_K2">
-                    Giờ Tự Học / Tuần K2 <span class="val-badge" id="val_So_Gio_Tu_Hoc_K2">16h</span>
-                  </label>
-                  <input type="range" class="form-input" id="So_Gio_Tu_Hoc_K2" min="0" max="40" step="1" value="16" oninput="syncVal('So_Gio_Tu_Hoc_K2', 'h')">
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label" for="So_Lan_Tham_Gia_HD_K2">
-                    Số Lần Tham Gia Hoạt Động K2 <span class="val-badge" id="val_So_Lan_Tham_Gia_HD_K2">4</span>
-                  </label>
-                  <input type="number" class="form-input" id="So_Lan_Tham_Gia_HD_K2" min="0" max="15" value="4" oninput="syncVal('So_Lan_Tham_Gia_HD_K2')">
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label" for="Diem_Ren_Luyen_K2">
-                    Điểm Rèn Luyện K2 <span class="val-badge" id="val_Diem_Ren_Luyen_K2">88</span>
-                  </label>
-                  <input type="range" class="form-input" id="Diem_Ren_Luyen_K2" min="0" max="100" step="1" value="88" oninput="syncVal('Diem_Ren_Luyen_K2')">
-                </div>
-              </div>
-
+    </header>
+    <div class="app-layout">
+      <nav class="nav-tabs" role="tablist" aria-label="Chức năng đồ án">
+        <button
+          id="nav-predict"
+          type="button"
+          class="nav-tab-btn active"
+          data-tab="tab-predict"
+          role="tab"
+          aria-selected="true"
+          aria-controls="tab-predict"
+        >
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M4 19V5m0 14h16M8 14l4-5 4 2 4-7" /></svg
+          >Dự đoán cá nhân
+        </button>
+        <button
+          id="nav-models"
+          type="button"
+          class="nav-tab-btn"
+          data-tab="tab-models"
+          role="tab"
+          tabindex="-1"
+          aria-selected="false"
+          aria-controls="tab-models"
+        >
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M5 20V10m7 10V4m7 16V8" /></svg
+          >Mô hình & phân tích
+        </button>
+        <button
+          id="nav-dataset"
+          type="button"
+          class="nav-tab-btn"
+          data-tab="tab-dataset"
+          role="tab"
+          tabindex="-1"
+          aria-selected="false"
+          aria-controls="tab-dataset"
+        >
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <rect x="3" y="4" width="18" height="16" rx="2" />
+            <path d="M3 10h18M9 4v16" /></svg
+          >Dữ liệu kiểm chứng
+        </button>
+        <button
+          id="nav-report"
+          type="button"
+          class="nav-tab-btn"
+          data-tab="tab-report"
+          role="tab"
+          tabindex="-1"
+          aria-selected="false"
+          aria-controls="tab-report"
+        >
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M14 3H5v18h14V8zM14 3v5h5M8 12h8m-8 4h6" /></svg
+          >Báo cáo & tài liệu
+        </button>
+      </nav>
+      <main class="main-content" id="main-content" tabindex="-1">
+        <section
+          id="tab-predict"
+          class="tab-pane active"
+          role="tabpanel"
+          aria-labelledby="nav-predict"
+        >
+          <div class="page-heading">
+            <div>
+              <h1>Dự đoán kết quả học kỳ 3</h1>
+              <p>Nhập quá trình học kỳ 1–2 hoặc chọn một mẫu để bắt đầu.</p>
             </div>
-
-            <!-- Additional K3 Registration & Model Choice -->
-            <div class="model-select-wrapper">
-              <div class="form-grid">
-                <div class="form-group">
-                  <label class="form-label" for="Tin_Chi_K3">
-                    Số Tín Chỉ Đăng Ký Kỳ 3
-                  </label>
-                  <input type="number" class="form-input" id="Tin_Chi_K3" min="0" max="25" value="16">
+            <span class="context-tag">Bản demo đồ án</span>
+          </div>
+          <section class="presets-section" aria-label="Mẫu kiểm thử">
+            <div class="presets-label">Thử nhanh một tình huống</div>
+            <div class="presets-list">
+              <button
+                type="button"
+                class="preset-chip"
+                onclick="applyPreset('excellent')"
+              >
+                Tiến bộ tốt
+              </button>
+              <button
+                type="button"
+                class="preset-chip"
+                onclick="applyPreset('good')"
+              >
+                Học tập ổn định
+              </button>
+              <button
+                type="button"
+                class="preset-chip"
+                onclick="applyPreset('average')"
+              >
+                Có dấu hiệu sa sút
+              </button>
+              <button
+                type="button"
+                class="preset-chip"
+                onclick="applyPreset('risk')"
+              >
+                Cần hỗ trợ học tập
+              </button>
+            </div>
+            <details class="more-presets">
+              <summary>Mẫu đối chiếu khác</summary>
+              <div class="presets-list">
+                <button
+                  type="button"
+                  class="preset-chip"
+                  onclick="applyPreset('downgrade_demo')"
+                >
+                  Ảnh hưởng điểm rèn luyện</button
+                ><button
+                  type="button"
+                  class="preset-chip"
+                  onclick="applyPreset('actual_491')"
+                >
+                  Sinh viên #491</button
+                ><button
+                  type="button"
+                  class="preset-chip"
+                  onclick="applyPreset('actual_392')"
+                >
+                  Sinh viên #392</button
+                ><button
+                  type="button"
+                  class="preset-chip"
+                  onclick="applyPreset('actual_153')"
+                >
+                  Sinh viên #153
+                </button>
+              </div>
+            </details>
+          </section>
+          <div class="grid-2col prediction-layout">
+            <section class="card input-panel" aria-labelledby="input-heading">
+              <h2 class="card-title" id="input-heading">Thông tin học tập</h2>
+              <p class="section-description">
+                Các trường đều bắt buộc. GPA theo thang 4; điểm rèn luyện theo
+                thang 100.
+              </p>
+              <form id="prediction-form" onsubmit="handlePredictSubmit(event)">
+                <div class="form-grid">
+                  <fieldset class="semester-box">
+                    <legend>Học kỳ 1</legend>
+                    <div class="form-group">
+                      <label for="gpa1" class="form-label"
+                        >GPA<span class="field-unit">Thang 4</span></label
+                      ><input
+                        required
+                        type="number"
+                        class="form-input"
+                        id="gpa1"
+                        min="0"
+                        max="4"
+                        step="0.01"
+                        value="3.40"
+                        oninput="syncVal('gpa1')"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label for="Tin_Chi_K1" class="form-label"
+                        >Tín chỉ tích lũy<span class="field-unit"
+                          >tín chỉ</span
+                        ></label
+                      ><input
+                        required
+                        type="number"
+                        class="form-input"
+                        id="Tin_Chi_K1"
+                        min="0"
+                        max="30"
+                        step="1"
+                        value="16"
+                        oninput="syncVal('Tin_Chi_K1')"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label for="So_Gio_Tu_Hoc_K1" class="form-label"
+                        >Tự học mỗi tuần<span class="field-unit"
+                          >giờ / tuần</span
+                        ></label
+                      ><input
+                        required
+                        type="number"
+                        class="form-input"
+                        id="So_Gio_Tu_Hoc_K1"
+                        min="0"
+                        max="60"
+                        step="0.1"
+                        value="14"
+                        oninput="syncVal('So_Gio_Tu_Hoc_K1')"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label for="So_Lan_Tham_Gia_HD_K1" class="form-label"
+                        >Tham gia hoạt động<span class="field-unit"
+                          >lần</span
+                        ></label
+                      ><input
+                        required
+                        type="number"
+                        class="form-input"
+                        id="So_Lan_Tham_Gia_HD_K1"
+                        min="0"
+                        max="20"
+                        step="1"
+                        value="3"
+                        oninput="syncVal('So_Lan_Tham_Gia_HD_K1')"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label for="Diem_Ren_Luyen_K1" class="form-label"
+                        >Điểm rèn luyện<span class="field-unit"
+                          >Thang 100</span
+                        ></label
+                      ><input
+                        required
+                        type="number"
+                        class="form-input"
+                        id="Diem_Ren_Luyen_K1"
+                        min="0"
+                        max="100"
+                        step="1"
+                        value="82"
+                        oninput="syncVal('Diem_Ren_Luyen_K1')"
+                      />
+                    </div>
+                  </fieldset>
+                  <fieldset class="semester-box">
+                    <legend>Học kỳ 2</legend>
+                    <div class="form-group">
+                      <label for="gpa2" class="form-label"
+                        >GPA<span class="field-unit">Thang 4</span></label
+                      ><input
+                        required
+                        type="number"
+                        class="form-input"
+                        id="gpa2"
+                        min="0"
+                        max="4"
+                        step="0.01"
+                        value="3.55"
+                        oninput="syncVal('gpa2')"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label for="Tin_Chi_K2" class="form-label"
+                        >Tín chỉ tích lũy<span class="field-unit"
+                          >tín chỉ</span
+                        ></label
+                      ><input
+                        required
+                        type="number"
+                        class="form-input"
+                        id="Tin_Chi_K2"
+                        min="0"
+                        max="30"
+                        step="1"
+                        value="18"
+                        oninput="syncVal('Tin_Chi_K2')"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label for="So_Gio_Tu_Hoc_K2" class="form-label"
+                        >Tự học mỗi tuần<span class="field-unit"
+                          >giờ / tuần</span
+                        ></label
+                      ><input
+                        required
+                        type="number"
+                        class="form-input"
+                        id="So_Gio_Tu_Hoc_K2"
+                        min="0"
+                        max="60"
+                        step="0.1"
+                        value="16"
+                        oninput="syncVal('So_Gio_Tu_Hoc_K2')"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label for="So_Lan_Tham_Gia_HD_K2" class="form-label"
+                        >Tham gia hoạt động<span class="field-unit"
+                          >lần</span
+                        ></label
+                      ><input
+                        required
+                        type="number"
+                        class="form-input"
+                        id="So_Lan_Tham_Gia_HD_K2"
+                        min="0"
+                        max="20"
+                        step="1"
+                        value="4"
+                        oninput="syncVal('So_Lan_Tham_Gia_HD_K2')"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label for="Diem_Ren_Luyen_K2" class="form-label"
+                        >Điểm rèn luyện<span class="field-unit"
+                          >Thang 100</span
+                        ></label
+                      ><input
+                        required
+                        type="number"
+                        class="form-input"
+                        id="Diem_Ren_Luyen_K2"
+                        min="0"
+                        max="100"
+                        step="1"
+                        value="88"
+                        oninput="syncVal('Diem_Ren_Luyen_K2')"
+                      />
+                    </div>
+                  </fieldset>
                 </div>
-
-                <div class="form-group">
-                  <label class="form-label" for="Diem_Ren_Luyen_K3">
-                    Điểm Rèn Luyện Kỳ 3 Dự Kiến <span class="val-badge" id="val_Diem_Ren_Luyen_K3">80</span>
-                  </label>
-                  <input type="range" class="form-input" id="Diem_Ren_Luyen_K3" min="0" max="100" step="1" value="80" oninput="syncVal('Diem_Ren_Luyen_K3')">
-                </div>
-
-                <div class="form-group" style="grid-column: 1 / -1;">
-                  <label class="model-select-label" for="selected_model">
-                    ⚙️ Thuật Toán Dự Đoán Hồi Quy:
-                  </label>
-                  <select class="form-select" id="selected_model">
-                    <option value="Linear Regression (Scratch GD)" selected>⭐ Linear Regression (Tự Cài Đặt Gradient Descent) [Trọng Tâm]</option>
-                    <option value="Linear Regression (sklearn)">🔹 Linear Regression (scikit-learn OLS)</option>
-                    <option value="Ridge Regression">🔸 Ridge Regression (L2 Regularization)</option>
-                    <option value="Random Forest">🌲 Random Forest Regressor (Phi Tuyến Baseline)</option>
+                <fieldset class="model-select-wrapper">
+                  <legend>Kế hoạch học kỳ 3</legend>
+                  <div class="form-grid">
+                    <div class="form-group">
+                      <label for="Tin_Chi_K3" class="form-label"
+                        >Tín chỉ đăng ký</label
+                      ><input
+                        required
+                        type="number"
+                        class="form-input"
+                        id="Tin_Chi_K3"
+                        min="0"
+                        max="30"
+                        step="1"
+                        value="16"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label for="Diem_Ren_Luyen_K3" class="form-label"
+                        >Điểm rèn luyện dự kiến</label
+                      ><input
+                        required
+                        type="number"
+                        class="form-input"
+                        id="Diem_Ren_Luyen_K3"
+                        min="0"
+                        max="100"
+                        step="1"
+                        value="80"
+                      />
+                    </div>
+                  </div>
+                </fieldset>
+                <div class="form-group model-choice">
+                  <label for="selected_model" class="form-label"
+                    >Mô hình dự đoán GPA</label
+                  ><select class="form-select" id="selected_model">
+                    <option value="Linear Regression (Scratch GD)">
+                      Linear Regression · Tự cài đặt GD
+                    </option>
+                    <option value="Linear Regression (sklearn)">
+                      Linear Regression · scikit-learn OLS
+                    </option>
+                    <option value="Ridge Regression">Ridge Regression</option>
+                    <option value="Random Forest">Random Forest</option>
                   </select>
                 </div>
+                <button
+                  type="submit"
+                  class="btn-predict"
+                  id="btn-submit-predict"
+                >
+                  Dự đoán học kỳ 3 <span aria-hidden="true">→</span>
+                </button>
+                <p
+                  id="prediction-status"
+                  class="status-message"
+                  role="status"
+                  aria-live="polite"
+                ></p>
+                <p
+                  id="prediction-error"
+                  class="error-message"
+                  role="alert"
+                  hidden
+                ></p>
+              </form>
+            </section>
+            <section
+              class="results-container"
+              aria-label="Kết quả dự đoán"
+              data-state="loading"
+            >
+              <div class="card result-panel">
+                <div class="result-heading">
+                  <h2 class="card-title">Kết quả dự đoán</h2>
+                  <span id="result-state" class="result-state"
+                    >Đang khởi tạo</span
+                  >
+                </div>
+                <div class="hero-header">
+                  <span class="hero-title">GPA học kỳ 3</span
+                  ><span class="badge badge-core" id="result-model-badge"
+                    >Chờ mô hình</span
+                  >
+                </div>
+                <div class="gpa-display-row">
+                  <span class="gpa-score" id="res-gpa3">—</span
+                  ><span class="gpa-scale">/ 4.00</span>
+                </div>
+                <div class="gauge-bar-wrapper" aria-hidden="true">
+                  <div class="gauge-track">
+                    <div
+                      class="gauge-fill"
+                      id="res-gauge-fill"
+                      style="width: 0%"
+                    ></div>
+                  </div>
+                  <div class="gauge-ticks">
+                    <span>0.0</span><span>2.0</span><span>4.0</span>
+                  </div>
+                </div>
+                <div class="mini-cards-grid">
+                  <div class="mini-card">
+                    <h3 class="mini-card-label">Xếp loại tổng hợp dự kiến</h3>
+                    <span class="rank-badge" id="res-rank">—</span>
+                    <p id="res-rank-note" class="result-note"></p>
+                  </div>
+                  <div class="mini-card">
+                    <h3 class="mini-card-label">Tín hiệu học tập</h3>
+                    <span class="risk-badge" id="res-risk"
+                      ><span id="res-risk-text">—</span></span
+                    >
+                    <p id="res-risk-note" class="result-note"></p>
+                  </div>
+                </div>
+                <p class="demo-note">
+                  Kết quả mang tính tham khảo. Xếp loại và cảnh báo dùng quy tắc
+                  của bản demo; chỉ số rủi ro không phải xác suất thôi học đã
+                  được hiệu chuẩn.
+                </p>
               </div>
-            </div>
-
-            <button type="submit" class="btn-predict" id="btn-submit-predict">
-              🚀 DỰ ĐOÁN KẾT QUẢ KỲ 3
-            </button>
-          </form>
-        </div>
-
-        <!-- Right Column: Results Dashboard -->
-        <div class="results-container">
-          
-          <!-- Hero GPA3 Score Card -->
-          <div class="result-hero-card">
-            <div class="hero-header">
-              <span class="hero-title">KẾT QUẢ DỰ ĐOÁN GPA KỲ 3</span>
-              <span class="badge badge-core" id="result-model-badge">Self-Implemented GD</span>
-            </div>
-
-            <div class="gpa-display-row">
-              <span class="gpa-score" id="res-gpa3">3.51</span>
-              <span class="gpa-scale">/ 4.00</span>
-            </div>
-
-            <div class="gauge-bar-wrapper">
-              <div class="gauge-track">
-                <div class="gauge-fill" id="res-gauge-fill" style="width: 80.25%;"></div>
-                <div class="gauge-marker" style="left: 50%;" title="Ngưỡng 2.0 (Trung bình)"></div>
-                <div class="gauge-marker" style="left: 62.5%;" title="Ngưỡng 2.5 (Khá)"></div>
-                <div class="gauge-marker" style="left: 80%;" title="Ngưỡng 3.2 (Giỏi)"></div>
-                <div class="gauge-marker" style="left: 90%;" title="Ngưỡng 3.6 (Xuất sắc)"></div>
+              <div class="comparison-box">
+                <h2 class="card-title">Đối chiếu cùng đầu vào</h2>
+                <table class="comparison-table">
+                  <caption class="sr-only">
+                    GPA học kỳ 3 từ bốn mô hình
+                  </caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Mô hình</th>
+                      <th scope="col">GPA dự đoán</th>
+                    </tr>
+                  </thead>
+                  <tbody id="comparison-tbody">
+                    <tr>
+                      <td>Linear Regression · Tự cài đặt</td>
+                      <td id="cmp-scratch">—</td>
+                    </tr>
+                    <tr>
+                      <td>Linear Regression · sklearn</td>
+                      <td id="cmp-sklearn">—</td>
+                    </tr>
+                    <tr>
+                      <td>Ridge Regression</td>
+                      <td id="cmp-ridge">—</td>
+                    </tr>
+                    <tr>
+                      <td>Random Forest</td>
+                      <td id="cmp-rf">—</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
-              <div class="gauge-ticks">
-                <span style="left: 0;">0.0 (Yếu)</span>
-                <span style="left: 50%; transform: translateX(-50%);">2.0 (TB)</span>
-                <span style="left: 62.5%; transform: translateX(-50%);">2.5 (Khá)</span>
-                <span style="left: 80%; transform: translateX(-50%); color: #38bdf8; font-weight: 700;">3.2 (Giỏi)</span>
-                <span style="left: 90%; transform: translateX(-50%); color: #a78bfa; font-weight: 700;">3.6 (X.Sắc)</span>
-                <span style="right: 0;">4.0</span>
-              </div>
+              <details class="profile-details" open>
+                <summary>Hồ sơ học tập · Kỳ 1 và kỳ 2</summary>
+                <p class="section-description">
+                  Quy đổi về thang 100 theo giới hạn nhập liệu để so sánh các
+                  chỉ số.
+                </p>
+                <div class="chart-box">
+                  <canvas
+                    id="studentRadarChart"
+                    role="img"
+                    aria-label="So sánh các chỉ số học tập kỳ 1 và kỳ 2; giá trị gốc nằm trong biểu mẫu."
+                  ></canvas>
+                </div>
+              </details>
+            </section>
+          </div>
+        </section>
+        <section
+          id="tab-models"
+          class="tab-pane"
+          role="tabpanel"
+          aria-labelledby="nav-models"
+          hidden
+        >
+          <div class="page-heading">
+            <div>
+              <h1>Mô hình & phân tích</h1>
+              <p>
+                Đọc phương trình, đối chiếu chỉ số và xem biểu đồ thực nghiệm.
+              </p>
             </div>
           </div>
-
-          <!-- Mini Stats Grid -->
-          <div class="mini-cards-grid">
-            <div class="mini-card">
-              <div class="mini-card-label">XẾP LOẠI DỰ ĐOÁN (QUY CHẾ BỘ GD&ĐT)</div>
-              <div>
-                <span class="rank-badge rank-gioi" id="res-rank">Giỏi</span>
-              </div>
-              <div id="res-rank-note" style="font-size: 0.76rem; color: #f59e0b; margin-top: 0.35rem; display: none; line-height: 1.3;"></div>
-            </div>
-
-            <div class="mini-card">
-              <div class="mini-card-label">CẢNH BÁO NGUY CƠ THÔI HỌC</div>
-              <div>
-                <span class="risk-badge risk-safe" id="res-risk">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                  <span id="res-risk-text">AN TOÀN</span>
-                </span>
-              </div>
-              <div id="res-risk-note" style="font-size: 0.76rem; color: #94a3b8; margin-top: 0.35rem; display: none; line-height: 1.3;"></div>
-            </div>
-          </div>
-
-          <!-- Direct Comparison Card -->
-          <div class="comparison-box">
-            <div class="card-title" style="margin-bottom: 0.6rem; font-size: 0.95rem;">
-              ⚖️ Đối Sánh Kết Quả Giữa Các Mô Hình
-            </div>
-            <table class="comparison-table">
-              <thead>
-                <tr>
-                  <th>Mô Hình</th>
-                  <th>GPA3 Dự Đoán</th>
-                  <th>Ghi Chú</th>
-                </tr>
-              </thead>
-              <tbody id="comparison-tbody">
-                <tr>
-                  <td class="core-highlight">★ Self-Implemented LR (GD)</td>
-                  <td class="core-highlight" id="cmp-scratch">3.51</td>
-                  <td>Mô hình trọng tâm tự viết</td>
-                </tr>
-                <tr>
-                  <td>Linear Regression (sklearn)</td>
-                  <td id="cmp-sklearn">3.53</td>
-                  <td>Độ lệch: 0.02</td>
-                </tr>
-                <tr>
-                  <td>Ridge Regression</td>
-                  <td id="cmp-ridge">3.53</td>
-                  <td>L2 penalty alpha=0.01</td>
-                </tr>
-                <tr>
-                  <td>Random Forest Regressor</td>
-                  <td id="cmp-rf">3.62</td>
-                  <td>Ensemble baseline</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Radar Profile Chart -->
-          <div class="card" style="padding: 1.15rem;">
-            <div class="card-title" style="margin-bottom: 0.3rem; font-size: 0.95rem;">
-              🕸️ Hồ Sơ Năng Lực Học Tập (So Sánh K1 vs K2)
-            </div>
-            <div class="chart-box">
-              <canvas id="studentRadarChart"></canvas>
-            </div>
-          </div>
-
-        </div>
-
-      </div>
-    </div>
-
-    <!-- ==================== TAB 2: SO SÁNH MÔ HÌNH & PHƯƠNG TRÌNH ==================== -->
-    <div id="tab-models" class="tab-pane">
-      
-      <!-- Linear Regression Equation Card -->
-      <div class="equation-card">
-        <h2 class="card-title" style="color: #38bdf8;">
-          📐 Phương Trình Hồi Quy Tuyến Tính (Linear Regression Equation)
-        </h2>
-        <p style="font-size: 0.88rem; color: var(--text-secondary);">
-          Mô hình trọng tâm được huấn luyện trên 23 đặc trưng đã chuẩn hóa (StandardScaler), tối ưu hóa hàm mất mát MSE bằng phương pháp Batch Gradient Descent:
-        </p>
-        <div class="equation-code" id="equation-display">
-          ŷ_GPA3 = 3.5493 - 0.5388·gpa1_x_gpa2 + 0.2359·gpa2_sq + 0.1680·gpa_avg + 0.1631·gpa1 + 0.1393·gpa2 + ...
-        </div>
-      </div>
-
-      <!-- Models Performance Comparison Table -->
-      <div class="card" style="margin-bottom: 1.5rem;">
-        <h2 class="card-title">
-          🏆 Bảng Hiệu Năng 10 Mô Hình Hồi Quy (GPA3)
-        </h2>
-        <div class="table-responsive">
-          <table class="data-table" id="table-regression-metrics">
-            <thead>
-              <tr>
-                <th>Mô Hình</th>
-                <th>Phân Loại</th>
-                <th>R² Train</th>
-                <th>R² Test</th>
-                <th>5-Fold CV R²</th>
-                <th>RMSE</th>
-                <th>MAE</th>
-                <th>MAPE (%)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- Will be loaded dynamically from /api/models-summary -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Chart Comparison -->
-      <div class="grid-2col" style="margin-bottom: 1.5rem;">
-        <div class="card">
-          <h3 class="card-title">📊 Biểu Đồ So Sánh R² Test Score</h3>
-          <div style="height: 300px;">
-            <canvas id="chartR2Comparison"></canvas>
-          </div>
-        </div>
-
-        <div class="card">
-          <h3 class="card-title">📈 Top 10 Đặc Trưng Ảnh Hưởng Lớn Nhất</h3>
-          <div style="height: 300px;">
-            <canvas id="chartFeatureWeights"></canvas>
-          </div>
-        </div>
-      </div>
-
-      <!-- Figures Gallery -->
-      <div class="card">
-        <h2 class="card-title">
-          🖼️ Thư Viện Biểu Đồ Nghiên Cứu Chuyên Sâu (Figures)
-        </h2>
-        <div class="gallery-grid">
-          <div class="gallery-item" onclick="openImageModal('/figures/scratch_lr_loss_curve.png', 'Đường Cong Học Tập (Loss Curve) — Self-Implemented Linear Regression')">
-            <img class="gallery-thumb" src="/figures/scratch_lr_loss_curve.png" alt="Loss curve">
-            <div class="gallery-caption">1. Loss Curve — Self-Implemented LR (GD)</div>
-          </div>
-
-          <div class="gallery-item" onclick="openImageModal('/figures/lr_residual_analysis.png', 'Phân Tích Phần Dư (Residual Analysis 3-Panel) — Linear Regression')">
-            <img class="gallery-thumb" src="/figures/lr_residual_analysis.png" alt="Residual analysis">
-            <div class="gallery-caption">2. Phân Tích Phần Dư (Residual Analysis 3-Panel)</div>
-          </div>
-
-          <div class="gallery-item" onclick="openImageModal('/figures/lr_weights_comparison.png', 'So Sánh Trọng Số: sklearn OLS vs Self-Implemented GD')">
-            <img class="gallery-thumb" src="/figures/lr_weights_comparison.png" alt="Weights comparison">
-            <div class="gallery-caption">3. So Sánh Trọng Số: sklearn OLS vs Scratch GD</div>
-          </div>
-
-          <div class="gallery-item" onclick="openImageModal('/figures/lr_learning_curve.png', 'Learning Curve — Linear Regression Cross-Validation')">
-            <img class="gallery-thumb" src="/figures/lr_learning_curve.png" alt="Learning curve">
-            <div class="gallery-caption">4. Learning Curve — Cross-Validation</div>
-          </div>
-
-          <div class="gallery-item" onclick="openImageModal('/figures/lr_actual_vs_predicted_comparison.png', 'Thực Tế vs Dự Đoán — So Sánh 2 Phiên Bản Linear Regression')">
-            <img class="gallery-thumb" src="/figures/lr_actual_vs_predicted_comparison.png" alt="Actual vs predicted">
-            <div class="gallery-caption">5. Actual vs Predicted (2 Phiên Bản LR)</div>
-          </div>
-
-          <div class="gallery-item" onclick="openImageModal('/figures/eda_correlation_heatmap.png', 'Ma Trận Tương Quan Toàn Diện Giữa Các Biến Số')">
-            <img class="gallery-thumb" src="/figures/eda_correlation_heatmap.png" alt="Correlation heatmap">
-            <div class="gallery-caption">6. Correlation Heatmap Ma Trận Tương Quan</div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- ==================== TAB 3: KIỂM THỬ TẬP KIỂM CHỨNG 146 SV ==================== -->
-    <div id="tab-dataset" class="tab-pane">
-      <div class="card">
-        
-        <div class="filter-bar">
-          <div>
-            <h2 class="card-title" style="margin-bottom: 0.3rem;">
-              📋 Bảng Đối Chiếu 146 Sinh Viên Kiểm Thử Độc Lập
-            </h2>
-            <p style="font-size: 0.85rem; color: var(--text-secondary);" id="dataset-summary-text">
-              Tỷ lệ dự đoán đúng xếp loại (kết hợp Học lực & ĐRL): <strong>93.2% (136/146)</strong> | Sai số GPA trung bình: <strong>0.165</strong>
+          <div class="equation-card">
+            <h2 class="card-title">Phương trình hồi quy tuyến tính</h2>
+            <p class="section-description">
+              Đặc trưng được chuẩn hóa bằng StandardScaler. Gradient Descent tối
+              ưu hàm mất mát MSE.
             </p>
+            <div class="equation-code" id="equation-display" role="status">
+              Đang tải phương trình…
+            </div>
           </div>
-
-          <div style="display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap;">
-            <input type="text" id="search-id-input" class="search-input" placeholder="Tìm theo MSSV..." oninput="filterTestRecords()">
-            <select class="form-select" id="filter-status-select" style="width: auto;" onchange="filterTestRecords()">
-              <option value="all">Tất Cả Kết Quả</option>
-              <option value="ĐÚNG">Chỉ Xem ĐÚNG</option>
-              <option value="LỆCH">Chỉ Xem LỆCH</option>
-            </select>
-            <a href="/download/compare-csv" class="btn-download primary">
-              📥 Tải CSV Bảng Đối Chiếu
-            </a>
-          </div>
-        </div>
-
-        <div class="table-responsive">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>MSSV</th>
-                <th>GPA1</th>
-                <th>GPA2</th>
-                <th>GPA3 Thực Tế</th>
-                <th>GPA3 Dự Đoán</th>
-                <th>Độ Lệch |y - ŷ|</th>
-                <th>ĐRL Kỳ 3</th>
-                <th>Xếp Loại Thực Tế</th>
-                <th>Xếp Loại Dự Đoán</th>
-                <th>Kết Quả Đối Chiếu</th>
-                <th>Thao Tác</th>
-              </tr>
-            </thead>
-            <tbody id="test-samples-tbody">
-              <!-- Loaded via JavaScript -->
-            </tbody>
-          </table>
-        </div>
-
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.25rem;">
-          <span style="font-size: 0.85rem; color: var(--text-muted);" id="pagination-info">Trang 1 / 10</span>
-          <div style="display: flex; gap: 0.5rem;">
-            <button class="preset-chip" id="btn-prev-page" onclick="changePage(-1)">◀ Trang Trước</button>
-            <button class="preset-chip" id="btn-next-page" onclick="changePage(1)">Trang Sau ▶</button>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- ==================== TAB 4: BÁO CÁO & ĐÁNH GIÁ ĐỒ ÁN ==================== -->
-    <div id="tab-report" class="tab-pane">
-      
-      <div class="grid-2col" style="margin-bottom: 1.5rem;">
-        
-        <!-- Rubric & Review Card -->
-        <div class="card">
-          <h2 class="card-title">
-            ✅ Đánh Giá Đồ Án Theo Chuẩn Môn Học Máy
-          </h2>
-          <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.85rem; font-size: 0.9rem;">
-            <li style="display: flex; gap: 0.6rem; align-items: flex-start;">
-              <span style="color: #10b981;">✔</span>
-              <div>
-                <strong>Mô hình trọng tâm đúng yêu cầu:</strong> Hồi quy Tuyến tính (Linear Regression) được triển khai sâu sắc qua cả 2 phiên bản (Tự cài đặt Gradient Descent & Thư viện scikit-learn).
-              </div>
-            </li>
-            <li style="display: flex; gap: 0.6rem; align-items: flex-start;">
-              <span style="color: #10b981;">✔</span>
-              <div>
-                <strong>Dữ liệu sạch, không rò rỉ (Zero Data Leakage):</strong> 500 sinh viên × 24 cột. Đạt 12/12 unit test tự động (test_dataset.py).
-              </div>
-            </li>
-            <li style="display: flex; gap: 0.6rem; align-items: flex-start;">
-              <span style="color: #10b981;">✔</span>
-              <div>
-                <strong>Kỹ thuật Feature Engineering:</strong> Tạo 12 đặc trưng phái sinh phản ánh xu hướng điểm, quán tính học tập, tương tác nỗ lực - rèn luyện.
-              </div>
-            </li>
-            <li style="display: flex; gap: 0.6rem; align-items: flex-start;">
-              <span style="color: #10b981;">✔</span>
-              <div>
-                <strong>Phân tích khoa học đầy đủ:</strong> Phương trình hồi quy, Bảng trọng số, Phân tích phần dư 3 bảng (Residuals vs Fitted, Histogram, Q-Q Plot), Đường cong học tập.
-              </div>
-            </li>
-            <li style="display: flex; gap: 0.6rem; align-items: flex-start;">
-              <span style="color: #10b981;">✔</span>
-              <div>
-                <strong>Giao diện trực quan (GUI Web App):</strong> Đã hoàn thành hệ thống Web Dashboard tương tác để kiểm thử và thuyết trình sinh động!
-              </div>
-            </li>
-          </ul>
-        </div>
-
-        <!-- Download Resources Card -->
-        <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
-          <div>
-            <h2 class="card-title">
-              📥 Tải Về Tài Liệu & Kết Quả Đồ Án
-            </h2>
-            <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
-              Toàn bộ file báo cáo Word chuẩn định dạng HUFLIT, mã nguồn chương trình, và bộ dữ liệu kiểm chứng:
+          <section class="card">
+            <h2 class="card-title">Hiệu năng 10 mô hình hồi quy</h2>
+            <p class="section-description">
+              Số liệu thực nghiệm lưu sẵn từ reports/model_training_results.md, không
+              tính lại khi thay đổi biểu mẫu. R² càng cao càng tốt; RMSE, MAE và
+              MAPE càng thấp càng tốt.
             </p>
-
-            <div style="display: flex; flex-direction: column; gap: 0.85rem;">
-              <a href="/download/report" class="btn-download primary" style="padding: 0.85rem 1.25rem; font-size: 0.95rem;">
-                📄 Tải Báo Cáo Đồ Án (BaoCao_DoAn_HocMay.docx ~ 1.3 MB)
-              </a>
-              <a href="/download/compare-csv" class="btn-download" style="padding: 0.75rem 1.25rem;">
-                📊 Tải File Đối Chiếu 146 SV (bang_so_sanh_du_doan.csv)
-              </a>
+            <div
+              class="table-responsive"
+              role="region"
+              aria-label="Bảng hiệu năng mô hình, cuộn ngang để xem thêm"
+              tabindex="0"
+            >
+              <table class="data-table" id="table-regression-metrics">
+                <caption class="sr-only">
+                  Chỉ số đánh giá hồi quy đã lưu
+                </caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Mô hình</th>
+                    <th scope="col">Cách triển khai</th>
+                    <th scope="col">R² Train</th>
+                    <th scope="col">R² Test</th>
+                    <th scope="col">5-Fold CV R²</th>
+                    <th scope="col">RMSE</th>
+                    <th scope="col">MAE</th>
+                    <th scope="col">MAPE</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colspan="8">Đang tải chỉ số…</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+          <div class="grid-2col analysis-charts">
+            <section class="card">
+              <h2 class="card-title">R² trên tập kiểm thử</h2>
+              <div class="analysis-chart">
+                <canvas
+                  id="chartR2Comparison"
+                  role="img"
+                  aria-label="R² của các mô hình; số liệu chi tiết trong bảng hiệu năng."
+                ></canvas>
+              </div>
+            </section>
+            <section class="card">
+              <h2 class="card-title">10 trọng số lớn nhất</h2>
+              <p class="section-description">
+                Hệ số trên dữ liệu đã chuẩn hóa; không diễn giải như quan hệ
+                nhân quả.
+              </p>
+              <div class="analysis-chart">
+                <canvas
+                  id="chartFeatureWeights"
+                  role="img"
+                  aria-label="So sánh trọng số sklearn và Gradient Descent."
+                ></canvas>
+              </div>
+            </section>
+          </div>
+          <section class="research-gallery">
+            <h2 class="card-title">Biểu đồ nghiên cứu</h2>
+            <p class="section-description">
+              Chọn biểu đồ để xem đầy đủ. Nhấn Esc để đóng.
+            </p>
+            <div class="gallery-grid">
+              <button
+                type="button"
+                class="gallery-item"
+                onclick="openImageModal('/figures/scratch_lr_loss_curve.png', 'Đường cong mất mát')"
+              >
+                <img
+                  class="gallery-thumb"
+                  src="/figures/scratch_lr_loss_curve.png"
+                  loading="lazy"
+                  alt="Đường cong mất mát"
+                /><span class="gallery-caption"
+                  >Đường cong mất mát<span aria-hidden="true"> ↗</span></span
+                ></button
+              ><button
+                type="button"
+                class="gallery-item"
+                onclick="openImageModal('/figures/lr_residual_analysis.png', 'Phân tích phần dư')"
+              >
+                <img
+                  class="gallery-thumb"
+                  src="/figures/lr_residual_analysis.png"
+                  loading="lazy"
+                  alt="Phân tích phần dư"
+                /><span class="gallery-caption"
+                  >Phân tích phần dư<span aria-hidden="true"> ↗</span></span
+                ></button
+              ><button
+                type="button"
+                class="gallery-item"
+                onclick="openImageModal('/figures/lr_weights_comparison.png', 'So sánh trọng số')"
+              >
+                <img
+                  class="gallery-thumb"
+                  src="/figures/lr_weights_comparison.png"
+                  loading="lazy"
+                  alt="So sánh trọng số"
+                /><span class="gallery-caption"
+                  >So sánh trọng số<span aria-hidden="true"> ↗</span></span
+                ></button
+              ><button
+                type="button"
+                class="gallery-item"
+                onclick="openImageModal('/figures/lr_learning_curve.png', 'Đường cong học tập')"
+              >
+                <img
+                  class="gallery-thumb"
+                  src="/figures/lr_learning_curve.png"
+                  loading="lazy"
+                  alt="Đường cong học tập"
+                /><span class="gallery-caption"
+                  >Đường cong học tập<span aria-hidden="true"> ↗</span></span
+                ></button
+              ><button
+                type="button"
+                class="gallery-item"
+                onclick="openImageModal('/figures/lr_actual_vs_predicted_comparison.png', 'Thực tế và dự đoán')"
+              >
+                <img
+                  class="gallery-thumb"
+                  src="/figures/lr_actual_vs_predicted_comparison.png"
+                  loading="lazy"
+                  alt="Thực tế và dự đoán"
+                /><span class="gallery-caption"
+                  >Thực tế và dự đoán<span aria-hidden="true"> ↗</span></span
+                ></button
+              ><button
+                type="button"
+                class="gallery-item"
+                onclick="openImageModal('/figures/eda_correlation_heatmap.png', 'Ma trận tương quan')"
+              >
+                <img
+                  class="gallery-thumb"
+                  src="/figures/eda_correlation_heatmap.png"
+                  loading="lazy"
+                  alt="Ma trận tương quan"
+                /><span class="gallery-caption"
+                  >Ma trận tương quan<span aria-hidden="true"> ↗</span></span
+                >
+              </button>
+            </div>
+          </section>
+        </section>
+        <section
+          id="tab-dataset"
+          class="tab-pane"
+          role="tabpanel"
+          aria-labelledby="nav-dataset"
+          hidden
+        >
+          <div class="page-heading">
+            <div>
+              <h1>Dữ liệu kiểm chứng</h1>
+              <p>
+                Đối chiếu kết quả đã lưu và nạp từng sinh viên vào biểu mẫu dự
+                đoán.
+              </p>
+            </div>
+            <a href="/download/compare-csv" class="btn-download"
+              >Tải bảng CSV <span aria-hidden="true">↓</span></a
+            >
+          </div>
+          <section class="card">
+            <p class="dataset-summary" id="dataset-summary-text" role="status">
+              Đang tải thống kê từ bảng đối chiếu…
+            </p>
+            <p class="section-description">
+              Dự đoán trong bảng là kết quả lưu sẵn. Nút “Thử” chạy lại với mô
+              hình hiện được chọn trong biểu mẫu.
+            </p>
+            <div class="filter-bar">
+              <div class="filter-field">
+                <label for="search-id-input">Tìm mã sinh viên</label
+                ><input
+                  type="search"
+                  id="search-id-input"
+                  class="search-input"
+                  placeholder="Ví dụ: 491"
+                  oninput="filterTestRecords()"
+                  autocomplete="off"
+                />
+              </div>
+              <div class="filter-field">
+                <label for="filter-status-select">Kết quả đối chiếu</label
+                ><select
+                  class="form-select"
+                  id="filter-status-select"
+                  onchange="filterTestRecords()"
+                >
+                  <option value="all">Tất cả kết quả</option>
+                  <option value="ĐÚNG">Xếp loại đúng</option>
+                  <option value="LỆCH">Xếp loại lệch</option>
+                </select>
+              </div>
+            </div>
+            <div
+              class="table-responsive"
+              role="region"
+              aria-label="Bảng kiểm chứng sinh viên, cuộn ngang để xem thêm"
+              tabindex="0"
+            >
+              <table class="data-table">
+                <caption class="sr-only">
+                  Đối chiếu GPA và xếp loại thực tế với dự đoán đã lưu
+                </caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Mã SV</th>
+                    <th scope="col">GPA kỳ 1</th>
+                    <th scope="col">GPA kỳ 2</th>
+                    <th scope="col">GPA kỳ 3 thực tế</th>
+                    <th scope="col">GPA kỳ 3 dự đoán</th>
+                    <th scope="col">Sai số tuyệt đối</th>
+                    <th scope="col">ĐRL kỳ 3</th>
+                    <th scope="col">Xếp loại thực tế</th>
+                    <th scope="col">Xếp loại dự đoán</th>
+                    <th scope="col">Đối chiếu</th>
+                    <th scope="col">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody id="test-samples-tbody">
+                  <tr>
+                    <td colspan="11">Đang tải dữ liệu…</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="pagination">
+              <span id="pagination-info" role="status">Đang tải…</span>
+              <div class="pagination-actions">
+                <button
+                  type="button"
+                  class="preset-chip"
+                  id="btn-prev-page"
+                  disabled
+                  onclick="changePage(-1)"
+                >
+                  ← Trang trước</button
+                ><button
+                  type="button"
+                  class="preset-chip"
+                  id="btn-next-page"
+                  disabled
+                  onclick="changePage(1)"
+                >
+                  Trang sau →
+                </button>
+              </div>
+            </div>
+          </section>
+        </section>
+        <section
+          id="tab-report"
+          class="tab-pane"
+          role="tabpanel"
+          aria-labelledby="nav-report"
+          hidden
+        >
+          <div class="page-heading">
+            <div>
+              <h1>Báo cáo & tài liệu</h1>
+              <p>
+                Tài liệu thuyết trình, phạm vi đồ án và những điểm cần lưu ý.
+              </p>
             </div>
           </div>
-
-          <div style="background: rgba(30, 41, 59, 0.4); border-radius: var(--radius-sm); padding: 1rem; margin-top: 1.5rem; border: 1px solid var(--border-color);">
-            <div style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.6;">
-              <strong>Thông Tin Nhóm Sinh Viên:</strong><br>
-              • Đặng Đại Lợi — MSSV: 24DH111038 (Nhóm trưởng)<br>
-              • Nguyễn Thái Lộc — MSSV: 24DH113306 (Thành viên)<br>
-              • Lớp: 242010202 • Giảng viên hướng dẫn: TS. Võ Thị Hồng Tuyết
-            </div>
+          <div class="grid-2col">
+            <section class="card">
+              <h2 class="card-title">Nội dung đồ án</h2>
+              <ul class="report-list">
+                <li>
+                  <strong>Hồi quy tuyến tính</strong>
+                  <p>
+                    Tự cài đặt Gradient Descent và đối chiếu với scikit-learn
+                    OLS.
+                  </p>
+                </li>
+                <li>
+                  <strong>Xử lý dữ liệu & đặc trưng</strong>
+                  <p>
+                    Dữ liệu học tập kỳ 1–2, các đặc trưng phái sinh và kiểm tra
+                    dữ liệu tự động.
+                  </p>
+                </li>
+                <li>
+                  <strong>Phân tích thực nghiệm</strong>
+                  <p>
+                    Chỉ số hồi quy, phân tích phần dư, đường cong học tập và
+                    bảng đối chiếu sinh viên.
+                  </p>
+                </li>
+              </ul>
+              <div class="demo-note">
+                <strong>Giới hạn cần trình bày</strong>
+                <p>
+                  Chỉ số đánh giá lưu sẵn không tự cập nhật sau khi huấn luyện
+                  lại. Kết quả demo chưa thay thế đánh giá thực tế trên sinh
+                  viên hoặc quy định của nhà trường.
+                </p>
+              </div>
+            </section>
+            <section class="card">
+              <h2 class="card-title">Tải tài liệu</h2>
+              <div class="download-list">
+                <a href="/download/report" class="btn-download primary"
+                  >Báo cáo đồ án <span>Word · DOCX ↓</span></a
+                ><a href="/download/compare-csv" class="btn-download"
+                  >Bảng đối chiếu dự đoán <span>CSV ↓</span></a
+                >
+              </div>
+              <div class="team-info">
+                <h3>Nhóm thực hiện</h3>
+                <p>
+                  Đặng Đại Lợi · 24DH111038 · Nhóm trưởng<br />Nguyễn Thái Lộc ·
+                  24DH113306
+                </p>
+                <p>Lớp 242010202<br />GVHD: TS. Võ Thị Hồng Tuyết</p>
+              </div>
+            </section>
           </div>
-        </div>
-
-      </div>
-
+        </section>
+      </main>
     </div>
-
-  </main>
-
-  <!-- Image Zoom Modal -->
-  <div id="image-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 100; justify-content: center; align-items: center; padding: 2rem;" onclick="closeImageModal()">
-    <div style="max-width: 90%; max-height: 90%; background: #0f172a; border-radius: 12px; border: 1px solid #38bdf8; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.8);" onclick="event.stopPropagation()">
-      <div style="padding: 1rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center;">
-        <span id="modal-title" style="font-weight: 700; color: #38bdf8;">Tiêu đề</span>
-        <button style="background: transparent; border: none; color: white; font-size: 1.5rem; cursor: pointer;" onclick="closeImageModal()">✕</button>
+    <dialog id="image-modal" aria-labelledby="modal-title">
+      <div class="modal-header">
+        <h2 id="modal-title">Biểu đồ nghiên cứu</h2>
+        <button
+          type="button"
+          class="modal-close"
+          aria-label="Đóng biểu đồ"
+          onclick="closeImageModal()"
+        >
+          ✕
+        </button>
       </div>
-      <img id="modal-img" src="" alt="Zoomed figure" style="max-width: 100%; max-height: 75vh; display: block; margin: 0 auto; padding: 1rem;">
-    </div>
-  </div>
-
-  <!-- Footer -->
-  <footer class="app-footer">
-    <p>Đồ Án Kết Thúc Học Phần Môn Học Máy • HUFLIT 2026</p>
-    <p style="margin-top: 0.25rem; font-size: 0.78rem;">Phát triển với sự đồng hành của Hệ Thống Đa Đặc Vụ AI (#ai-dev-team)</p>
-  </footer>
-
-  <!-- App Script -->
-  <script src="/static/app.js"></script>
-</body>
+      <img id="modal-img" alt="Biểu đồ nghiên cứu phóng to" />
+    </dialog>
+    <footer class="app-footer">
+      <span>HUFLIT · Đồ án Học máy 2026</span
+      ><span>Dự đoán để tham khảo, đối chiếu để hiểu rõ hơn.</span>
+    </footer>
+    <noscript
+      ><p class="noscript-note">
+        Vui lòng bật JavaScript để nhập liệu và xem dự đoán. Bạn vẫn có thể
+        <a href="/download/report">tải báo cáo đồ án</a>.
+      </p></noscript
+    >
+  </body>
 </html>

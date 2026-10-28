@@ -51,3 +51,7 @@ pipeline_backup/
 
 # AI / MCP Cache
 .codebase-memory/
+
+# Local test/build/runtime scratch files (not source or experiment results)
+work/
+.pytest_cache/

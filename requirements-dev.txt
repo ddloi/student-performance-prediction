@@ -1,0 +1,4 @@
+-r requirements.txt
+
+# FastAPI TestClient, used by: python -m unittest test_api -v
+httpx>=0.27.0

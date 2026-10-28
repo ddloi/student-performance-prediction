@@ -7,5 +7,9 @@ echo    Đồ Án Môn Học Máy - GVHD: TS. Võ Thị Hồng Tuyết
 echo    Mô hình trọng tâm: Linear Regression (Self-Implemented GD & OLS)
 echo ======================================================================
 echo.
-python run_app.py
+pushd "%~dp0"
+python run_app.py %*
+set "APP_EXIT_CODE=%ERRORLEVEL%"
+popd
 pause
+exit /b %APP_EXIT_CODE%
