@@ -991,7 +991,7 @@ def main():
 
     report_content = f"""# Báo Cáo Kết Quả Huấn Luyện Mô Hình Machine Learning
 
-- **Tập dữ liệu:** `student_dataset_500.csv` (500 dòng × 24 cột)
+- **Tập dữ liệu:** `{DATASET_PATH.name}` ({df.shape[0]} dòng × 24 cột)
 - **Tập thuộc tính đầu vào (Features):** Dữ liệu đến hết kỳ 2 (Hoàn toàn không rò rỉ dữ liệu)
 - **Feature Engineering:** Thêm 6 biến phái sinh (gpa_trend, gpa_avg, study_hours_avg, drl_avg, activity_total, credits_total_k12)
 - **Cross-Validation:** 5-fold CV cho tất cả mô hình

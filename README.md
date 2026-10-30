@@ -64,11 +64,11 @@ Stored regression results from [reports/model_training_results.md](reports/model
 
 | Metric | Scikit-Learn OLS | Scratch Gradient Descent |
 | :--- | :---: | :---: |
-| **Mean Absolute Error (MAE)** | **0.1651** | **0.1676** |
-| **Mean Absolute Percentage Error (MAPE)** | **4.63%** | **4.69%** |
-| **$R^2$ Test Score** | **0.1900** | **0.1365** |
+| **Mean Absolute Error (MAE)** | **0.1730** | **0.1744** |
+| **Mean Absolute Percentage Error (MAPE)** | **4.88%** | **4.90%** |
+| **$R^2$ Test Score** | **0.2817** | **0.2486** |
 
-The current [artifacts/predictions/bang_so_sanh_du_doan.csv](artifacts/predictions/bang_so_sanh_du_doan.csv) contains **136/146 correct rank comparisons (93.15%)**, with mean GPA error **0.166**. These are CSV comparison results, separate from the regression metrics above and the older report's 134/146 result. The dashboard reads this CSV for its validation table; model-summary metrics are stored values. Live predictions use `artifacts/models/trained_models.joblib`, which is not re-evaluated automatically when the page loads.
+The current [artifacts/predictions/bang_so_sanh_du_doan.csv](artifacts/predictions/bang_so_sanh_du_doan.csv) contains **269/291 correct rank comparisons (92.4%)**, with mean GPA error **0.174**. These are CSV comparison results, separate from the regression metrics above and the older report's 134/146 result. The dashboard reads this CSV for its validation table; model-summary metrics are stored values. Live predictions use `artifacts/models/trained_models.joblib`, which is not re-evaluated automatically when the page loads.
 
 ### 2. ⚖️ Linear Regression: Self-Implemented (Scratch) vs. Scikit-Learn
 
@@ -111,7 +111,7 @@ student-performance-prediction/
 ├── tests/                       # Dataset, API and structure regression tests
 ├── data/
 │   ├── raw/simul_combined_lab.csv
-│   └── processed/student_dataset_500.csv
+│   └── processed/student_dataset_1000.csv
 ├── artifacts/
 │   ├── models/trained_models.joblib
 │   └── predictions/bang_so_sanh_du_doan.csv
@@ -179,7 +179,7 @@ These commands can overwrite their corresponding generated files. Importing the 
 
 | Command | Input | Generated output |
 | :--- | :--- | :--- |
-| `python -m scripts.generate_dataset` | `data/raw/simul_combined_lab.csv` | `data/processed/student_dataset_500.csv` |
+| `python -m scripts.generate_dataset` | `data/raw/simul_combined_lab.csv` | `data/processed/student_dataset_1000.csv` |
 | `python -m scripts.train_models` | Processed dataset | `reports/model_training_results.md`, research plots, prediction CSV |
 | `python -m scripts.compare_linear_regression` | Processed dataset | `reports/figures/so_sanh_linear_regression.png` |
 | `python -m scripts.generate_report` | Research plots and report content in the script | `reports/BaoCao_DoAn_HocMay.docx` |

@@ -1,5 +1,5 @@
 """
-Script sinh dataset 500 sinh viên hoàn chỉnh với 24 cột:
+Script sinh dataset sinh viên chuẩn hóa 24 cột (mặc định 1000 dòng):
 - Bổ sung status_K1, status_K2, status_K3 (Active / Leave)
 - Áp dụng chặt chẽ quy định: Tin_Chi_K3 == 0 và gpa3 == 0.0 -> status_K3 = 'Leave'
 - Các biến hành vi của kỳ nghỉ học (Leave) đều bằng 0
@@ -7,9 +7,10 @@ Script sinh dataset 500 sinh viên hoàn chỉnh với 24 cột:
 """
 
 
-def main():
+def main(total_rows: int = 1000, output_path: str = None):
     """Run this command explicitly; importing the module does not create artifacts."""
     import sys
+    import argparse
     from pathlib import Path
     import pandas as pd
     import numpy as np
@@ -17,10 +18,27 @@ def main():
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
 
-    from student_performance.paths import DATASET_PATH as OUTPUT_PATH, RAW_DATA_PATH as RAW_PATH
+    from student_performance.paths import (
+        DATASET_PATH_1000,
+        DATASET_PATH_500,
+        RAW_DATA_PATH as RAW_PATH,
+    )
 
-    OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    # OUTPUT_PATH_V2 removed
+    if output_path is None:
+        if len(sys.argv) > 1:
+            parser = argparse.ArgumentParser(description="Sinh dataset sinh viên chuẩn hóa 24 cột.")
+            parser.add_argument("--rows", type=int, default=1000, help="Tổng số dòng sinh viên (mặc định: 1000)")
+            parser.add_argument("--output", type=str, default=None, help="Đường dẫn file CSV xuất ra")
+            args, _ = parser.parse_known_args()
+            total_rows = args.rows
+            if args.output:
+                output_path = Path(args.output)
+
+    if output_path is None:
+        output_path = DATASET_PATH_1000 if total_rows >= 1000 else DATASET_PATH_500
+
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
 
     # ============================================================
     # 1. DỮ LIỆU GỐC (100 DÒNG KAGGLE)
@@ -43,10 +61,10 @@ def main():
     df_orig["gpa3"] = raw_gpa3.fillna(0.0).values
 
     # ============================================================
-    # 2. SINH 400 DÒNG MỚI THEO PHÂN PHỐI GỐC (ID 101 - 500)
+    # 2. SINH DÒNG MỚI THEO PHÂN PHỐI GỐC (ID 101 ĐẾN total_rows)
     # ============================================================
     np.random.seed(42)
-    N_NEW = 400
+    N_NEW = max(0, total_rows - len(df_orig))
 
     # Lấy phân phối GPA của sinh viên đang học (Active)
     active_gpas = df_orig[(df_orig["status_K2"] == "Active") & (df_orig["status_K3"] == "Active")][["gpa1", "gpa2", "gpa3"]]
@@ -58,7 +76,7 @@ def main():
     synth_gpa = np.round(synth_gpa, 2)
 
     df_new = pd.DataFrame()
-    df_new["stud_id"] = range(101, 501)
+    df_new["stud_id"] = range(101, 101 + N_NEW)
     df_new["status_K1"] = "Active"
     df_new["gpa1"] = synth_gpa[:, 0]
 
@@ -72,7 +90,7 @@ def main():
     df_new["status_K3"] = np.where(leave_k3_mask, "Leave", "Active")
     df_new["gpa3"] = np.where(leave_k3_mask, 0.0, synth_gpa[:, 2])
 
-    # Gộp 500 sinh viên
+    # Gộp toàn bộ sinh viên
     df_all = pd.concat([df_orig, df_new], ignore_index=True)
     n = len(df_all)
 
@@ -147,7 +165,6 @@ def main():
         else:
             return "Yếu"
 
-
     df_all["Xep_Loai_DRL"] = df_all["Diem_Ren_Luyen_TB"].apply(xep_loai_drl)
 
     # Xếp loại Học Lực theo CGPA
@@ -184,10 +201,10 @@ def main():
 
     # Lưu file
     try:
-        df_all.to_csv(OUTPUT_PATH, index=False, encoding="utf-8-sig")
-        print(f"Đã lưu thành công vào file: {OUTPUT_PATH}")
+        df_all.to_csv(output_path, index=False, encoding="utf-8-sig")
+        print(f"Đã lưu thành công vào file: {output_path}")
     except PermissionError:
-        fallback = OUTPUT_PATH.with_name("student_dataset_500_new.csv")
+        fallback = output_path.with_name(f"{output_path.stem}_new.csv")
         df_all.to_csv(fallback, index=False, encoding="utf-8-sig")
         print(f"File gốc đang bị khóa, đã lưu vào: {fallback}")
 
