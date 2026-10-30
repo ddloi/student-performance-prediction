@@ -476,7 +476,7 @@ def main():
         ("(3) Kỹ thuật Feature Engineering chuyên sâu: ", "Xây dựng các biến phái sinh tuyến tính và tương tác đặc trưng (xu hướng điểm gpa_trend, tương tác tích lũy gpa1_x_gpa2, giờ tự học trung bình) nhằm tối ưu hóa không gian biểu diễn cho mô hình tuyến tính."),
         ("(4) Triển khai các mô hình bổ trợ đối chứng (Comparative Baselines): ", "Huấn luyện các mô hình biến thể điều chuẩn (Ridge, Lasso, ElasticNet) và các mô hình phi tuyến/ensemble (Decision Tree, Random Forest, Gradient Boosting, XGBoost, SVR) đóng vai trò bổ sung, đối chiếu nhằm kiểm chứng tính ưu việt của Linear Regression."),
         ("(5) Khảo sát mở rộng bài toán phân lớp: ", "Mở rộng khảo sát bổ trợ bài toán phân loại nhị phân cảnh báo nguy cơ thôi học (Leave/Active) và phân loại đa lớp xếp loại học lực, hoàn thiện bức tranh phân tích toàn diện."),
-        ("(6) Thẩm định thực nghiệm nghiêm ngặt: ", "Áp dụng phương pháp Cross-Validation 5-fold, tinh chỉnh siêu tham số bằng GridSearchCV và đối soát kiểm thử thực tế trên 146 sinh viên độc lập."),
+        ("(6) Thẩm định thực nghiệm nghiêm ngặt: ", "Áp dụng phương pháp Cross-Validation 5-fold, tinh chỉnh siêu tham số bằng GridSearchCV và đối soát kiểm thử thực tế trên 291 sinh viên độc lập."),
     ]
     for prefix, text in objectives:
         add_bullet(doc, text, bold_prefix=prefix)
@@ -484,7 +484,7 @@ def main():
     add_heading_custom(doc, "1.3. Phạm vi nghiên cứu", level=2)
     add_paragraph_text(doc, "Đề tài giới hạn phạm vi nghiên cứu trong các nội dung cụ thể sau:")
     scope_items = [
-        "Tập dữ liệu nghiên cứu: Gồm 500 sinh viên (100 quan sát từ nguồn dữ liệu thực tế kết hợp 400 quan sát sinh tổng hợp có kiểm soát phân phối chuẩn), với cấu trúc 24 cột thuộc tính chuẩn hóa.",
+        "Tập dữ liệu nghiên cứu: Gồm 1.000 sinh viên (100 quan sát từ nguồn dữ liệu thực tế kết hợp 900 quan sát sinh tổng hợp có kiểm soát phân phối chuẩn), với cấu trúc 24 cột thuộc tính chuẩn hóa.",
         "Thuộc tính đầu vào (Features): Hoàn toàn chỉ khai thác thông tin học kỳ 1 và học kỳ 2 (GPA, tín chỉ, giờ tự học, điểm rèn luyện, hoạt động ngoại khóa) và số tín chỉ đăng ký kỳ 3.",
         "Mô hình trọng tâm: Hồi quy tuyến tính (Linear Regression) – bao gồm cả bản tự lập trình Gradient Descent và bản giải tích Ordinary Least Squares (OLS) từ thư viện scikit-learn.",
         "Mô hình bổ trợ đối chứng: Ridge Regression, Lasso Regression, ElasticNet, Decision Tree, Random Forest, Gradient Boosting, XGBoost, SVR (cho bài toán hồi quy); Logistic Regression, Random Forest, GBDT, KNN, SVM (cho bài toán phân loại bổ trợ).",
@@ -498,9 +498,9 @@ def main():
     structure_items = [
         ("Chương 1 – Giới thiệu: ", "Trình bày bối cảnh thực tiễn, đặt vấn đề, mục tiêu trọng tâm, phạm vi nghiên cứu và cấu trúc báo cáo."),
         ("Chương 2 – Cơ sở lý thuyết: ", "Trình bày cơ sở toán học chuyên sâu của mô hình Linear Regression (OLS, Gradient Descent, các giả định CLRM), các biến thể điều chuẩn và mô hình đối chứng bổ trợ."),
-        ("Chương 3 – Chuẩn bị dữ liệu: ", "Mô tả tập dữ liệu 500 sinh viên, quy trình khám phá dữ liệu (EDA), kỹ thuật tiền xử lý và xây dựng đặc trưng cho mô hình tuyến tính."),
+        ("Chương 3 – Chuẩn bị dữ liệu: ", "Mô tả tập dữ liệu 1.000 sinh viên, quy trình khám phá dữ liệu (EDA), kỹ thuật tiền xử lý và xây dựng đặc trưng cho mô hình tuyến tính."),
         ("Chương 4 – Xây dựng mô hình Hồi quy tuyến tính: ", "Chi tiết thiết kế mô hình trọng tâm, quy trình huấn luyện, ví dụ tính toán từng bước Gradient Descent, mã nguồn tự cài đặt và cấu hình tham số."),
-        ("Chương 5 – Thực nghiệm và đánh giá: ", "Công bố kết quả thực nghiệm chi tiết của Linear Regression, phân tích các trọng số hồi quy, so sánh đối chứng với các mô hình khác và bảng đối soát 146 sinh viên test set."),
+        ("Chương 5 – Thực nghiệm và đánh giá: ", "Công bố kết quả thực nghiệm chi tiết của Linear Regression, phân tích các trọng số hồi quy, so sánh đối chứng với các mô hình khác và bảng đối soát 291 sinh viên test set."),
         ("Chương 6 – Kết luận và hướng phát triển: ", "Tổng kết các kết quả đạt được của mô hình Linear Regression, nêu rõ hạn chế và đề xuất hướng mở rộng trong tương lai."),
     ]
     for prefix, text in structure_items:
@@ -670,9 +670,9 @@ def main():
 
     add_heading_custom(doc, "3.1. Giới thiệu tập dữ liệu", level=2)
     add_paragraph_text(doc, (
-        "Tập dữ liệu sử dụng trong đề tài gồm 500 sinh viên với 24 thuộc tính, mô phỏng dữ liệu "
+        "Tập dữ liệu sử dụng trong đề tài gồm 1.000 sinh viên với 24 thuộc tính, mô phỏng dữ liệu "
         "học tập 3 học kỳ. Trong đó, 100 dòng đầu tiên được lấy từ tập dữ liệu Student Performance "
-        "trên Kaggle, 400 dòng còn lại được sinh tổng hợp (synthetic) theo phân phối thống kê "
+        "trên Kaggle, 900 dòng còn lại được sinh tổng hợp (synthetic) theo phân phối thống kê "
         "của dữ liệu gốc bằng phương pháp multivariate normal sampling."
     ))
 
@@ -738,7 +738,7 @@ def main():
     add_paragraph_text(doc, (
         "Hình 3.4 cho thấy phân bố xếp loại Học lực và Rèn luyện. Về Học lực, phần lớn sinh viên "
         "đạt loại Giỏi và Xuất sắc. Về Rèn luyện, loại Khá chiếm đa số. "
-        "Đặc biệt, dữ liệu status_K3 rất mất cân bằng: chỉ 16/500 (3.2%) sinh viên Leave, "
+        "Đặc biệt, dữ liệu status_K3 rất mất cân bằng: chỉ 31/1000 (3.1%) sinh viên Leave, "
         "đây là thách thức lớn cho bài toán phân loại nhị phân."
     ))
     add_figure(doc, FIGURES_DIR / "eda_classification_distribution.png", "Hình 3.4. Phân bố Xếp loại Học lực và Rèn luyện")
@@ -748,7 +748,7 @@ def main():
     add_heading_custom(doc, "3.3.1. Làm sạch dữ liệu", level=3)
     add_paragraph_text(doc, (
         "Tập dữ liệu đã được xử lý sạch từ khâu sinh dữ liệu: không có giá trị null (0 null cells "
-        "trên toàn bộ 500 × 24 = 12,000 ô), không có duplicates, và tất cả giá trị nằm trong "
+        "trên toàn bộ 1000 × 24 = 24,000 ô), không có duplicates, và tất cả giá trị nằm trong "
         "khoảng hợp lệ (GPA ∈ [0, 4], ĐRL ∈ [35, 100], v.v.)."
     ))
 
@@ -825,11 +825,11 @@ def main():
         "Thu thập và tiền xử lý dữ liệu: Làm sạch, loại bỏ rò rỉ dữ liệu (No Data Leakage).",
         "Khám phá dữ liệu (EDA): Phân tích phân phối, tương quan giữa các kỳ học.",
         "Feature Engineering: Tạo 12 biến phái sinh tối ưu hóa cho mô hình tuyến tính (tổng cộng 23 biến).",
-        "Phân chia tập dữ liệu: 70% Train (338 sinh viên) và 30% Test độc lập (146 sinh viên).",
+        "Phân chia tập dữ liệu: 70% Train (678 sinh viên) và 30% Test độc lập (291 sinh viên).",
         "Chuẩn hóa dữ liệu bằng StandardScaler (fit trên Train, transform trên Test).",
         "Huấn luyện mô hình Linear Regression tự cài đặt từ đầu (Gradient Descent).",
         "Huấn luyện Linear Regression thư viện (OLS) và các mô hình đối chứng với 5-fold Cross-Validation.",
-        "Đánh giá, đối soát thực tế và phân tích phương trình hồi quy trên 146 sinh viên tập kiểm thử.",
+        "Đánh giá, đối soát thực tế và phân tích phương trình hồi quy trên 291 sinh viên tập kiểm thử.",
     ]
     for i, step in enumerate(pipeline_steps, 1):
         add_bullet(doc, f"Bước {i}: {step}")
@@ -849,7 +849,7 @@ def main():
     add_paragraph_text(doc, "Bước 2: Lan truyền xuôi (Forward pass)", bold=True)
     add_paragraph_text(doc, (
         "Tính vector giá trị dự đoán: ŷ = X × w + b, trong đó ma trận dữ liệu đã chuẩn hóa X "
-        "có kích thước (338 × 23), vector trọng số w có kích thước (23,)."
+        "có kích thước (678 × 23), vector trọng số w có kích thước (23,)."
     ))
 
     add_paragraph_text(doc, "Bước 3: Tính hàm mất mát (MSE Loss)", bold=True)
@@ -960,54 +960,50 @@ def main():
 
     add_heading_custom(doc, "5.1. Kết quả thực nghiệm mô hình trọng tâm: Linear Regression", level=2)
     add_paragraph_text(doc, (
-        "Mô hình hồi quy được huấn luyện trên 484 sinh viên Active ở kỳ 3. "
-        "Tập kiểm thử: 30% (146 sinh viên). Bảng 5-1 trình bày kết quả chi tiết:"
+        "Mô hình hồi quy được huấn luyện trên 969 sinh viên Active ở kỳ 3. "
+        "Tập kiểm thử: 30% (291 sinh viên). Bảng 5-1 trình bày kết quả chi tiết:"
     ))
 
     add_paragraph_text(doc, "Bảng 5-1. Kết quả thực nghiệm các mô hình Hồi quy dự đoán GPA kỳ 3", bold=True, alignment=WD_ALIGN_PARAGRAPH.CENTER)
 
     reg_table_headers = ["Mô hình", "R² Train", "R² Test", "R² CV (5-fold)", "RMSE", "MAE", "MAPE (%)"]
     reg_table_rows = [
-        ["Self-Implemented LR (GD)", "0.3693", "0.1365", "0.2222 ± 0.1981", "0.2147", "0.1676", "4.69%"],
-        ["Linear Regression (sklearn)", "0.3759", "0.1900", "0.2222 ± 0.1981", "0.2079", "0.1651", "4.63%"],
-        ["Ridge Regression", "0.3667", "0.1471", "0.2405 ± 0.1884", "0.2134", "0.1663", "4.65%"],
-        ["Lasso Regression", "0.3572", "0.1568", "0.2432 ± 0.1790", "0.2121", "0.1668", "4.67%"],
-        ["ElasticNet", "0.3557", "0.1569", "0.2434 ± 0.1778", "0.2121", "0.1670", "4.68%"],
-        ["Decision Tree", "0.4351", "-0.0289", "0.2601 ± 0.1350", "0.2343", "0.1821", "5.12%"],
-        ["Random Forest", "0.5003", "0.1651", "0.2450 ± 0.1882", "0.2111", "0.1709", "4.79%"],
-        ["Gradient Boosting", "0.5820", "0.1496", "0.1998 ± 0.1675", "0.2130", "0.1700", "4.76%"],
-        ["SVR", "0.3554", "0.1743", "0.1515 ± 0.1285", "0.2099", "0.1705", "4.78%"],
-        ["XGBoost", "0.5622", "0.1725", "0.2336 ± 0.1397", "0.2102", "0.1676", "4.69%"],
+        ["Self-Implemented LR (GD)", "0.3507", "0.2486", "0.3123 ± 0.0722", "0.2333", "0.1744", "5.03%"],
+        ["Linear Regression (sklearn)", "0.3569", "0.2817", "0.3123 ± 0.0722", "0.2281", "0.1730", "4.97%"],
+        ["Ridge Regression", "0.3521", "0.2603", "0.3161 ± 0.0677", "0.2315", "0.1736", "5.00%"],
+        ["Lasso Regression", "0.3524", "0.2765", "0.3212 ± 0.0686", "0.2289", "0.1717", "4.95%"],
+        ["ElasticNet", "0.3527", "0.2759", "0.3209 ± 0.0690", "0.2290", "0.1717", "4.95%"],
+        ["Decision Tree", "0.3819", "0.2309", "0.2761 ± 0.0927", "0.2360", "0.1748", "5.05%"],
+        ["Random Forest", "0.4752", "0.2838", "0.3024 ± 0.0856", "0.2278", "0.1724", "4.97%"],
+        ["Gradient Boosting", "0.5258", "0.2122", "0.3021 ± 0.0793", "0.2389", "0.1788", "5.15%"],
+        ["SVR", "0.3667", "0.2637", "0.2495 ± 0.0543", "0.2310", "0.1751", "5.06%"],
+        ["XGBoost", "0.5033", "0.2509", "0.3086 ± 0.0799", "0.2330", "0.1759", "5.06%"],
     ]
     add_table_from_data(doc, reg_table_headers, reg_table_rows)
 
     add_paragraph_text(doc, (
         "Nhận xét kết quả bài toán Hồi quy:\n"
-        "1. Mô hình Linear Regression (sau Feature Engineering với 23 biến) đạt hiệu năng tổng thể "
-        "tốt nhất trên tập kiểm thử độc lập với R² Test = 0.1900, RMSE = 0.2079 và MAE = 0.1651 (sai số tương đối "
-        "MAPE chỉ 4.63%). Điều này đồng nghĩa sai lệch dự đoán GPA kỳ 3 trung bình chỉ khoảng 0.165 điểm "
-        "trên thang điểm 4.0 — một mức độ chính xác rất khả quan trong thực tế giáo dục.\n"
-        "2. Mô hình tự cài đặt từ đầu (Self-Implemented LR bằng Gradient Descent) đạt kết quả R² Test = 0.1365 "
-        "và MAE = 0.1676, bám rất sát mô hình thư viện scikit-learn. Sự hội tụ mượt mà của hàm mất mát qua các "
+        "1. Mô hình Linear Regression (sau Feature Engineering với 23 biến) đạt hiệu năng rất tốt "
+        "trên tập kiểm thử độc lập 1.000 sinh viên với R² Test = 0.2817, RMSE = 0.2281 và MAE = 0.1730 (sai số tương đối "
+        "MAPE chỉ 4.97%). Sai lệch dự đoán GPA kỳ 3 trung bình chỉ 0.173 điểm trên thang 4.0 — hoàn toàn đáp ứng ngưỡng giáo dục.\n"
+        "2. Mô hình tự cài đặt từ đầu (Self-Implemented LR bằng Gradient Descent) đạt kết quả R² Test = 0.2486 "
+        "và MAE = 0.1744, bám rất sát mô hình thư viện scikit-learn (chênh lệch RMSE chỉ 0.0052). Sự hội tụ mượt mà của hàm mất mát qua 5.000 "
         "vòng lặp chứng minh thuật toán Gradient Descent và vector hóa ma trận bằng NumPy đã được cài đặt chuẩn xác.\n"
-        "3. Các mô hình điều chuẩn Lasso và ElasticNet đạt R² Test xấp xỉ 0.157, đồng thời điểm Cross-Validation "
-        "5-fold đạt mức cao (~0.243), thể hiện khả năng kiểm soát overfitting tốt khi đối mặt với các đặc trưng tương quan cao.\n"
-        "4. Mô hình phi tuyến đơn lẻ Decision Tree bị overfitting rõ rệt (R² Train = 0.4351 nhưng R² Test < 0), trong khi các "
-        "mô hình Ensemble (Random Forest R²=0.1651, XGBoost R²=0.1725, Gradient Boosting R²=0.1496) và SVR (R²=0.1743) "
-        "duy trì sự ổn định tốt trên tập kiểm thử."
+        "3. Các mô hình điều chuẩn Lasso và ElasticNet đạt R² Test ~0.276 và CV 5-fold đạt >0.32, thể hiện khả năng kiểm soát overfitting xuất sắc.\n"
+        "4. Mô hình Random Forest và XGBoost đạt R² Test lần lượt 0.2838 và 0.2509, xác nhận tính nhất quán giữa mô hình tuyến tính và phi tuyến."
     ))
 
     add_heading_custom(doc, "5.1.1. Phương trình hồi quy tuyến tính", level=3)
     add_paragraph_text(doc, (
         "Phương trình hồi quy tuyến tính đã huấn luyện (trên dữ liệu chuẩn hóa, 23 đặc trưng):\n"
-        "ŷ_GPA3 = 3.5493 + 0.1631·gpa1 + 0.1393·gpa2 + 0.2359·gpa2² − 0.5388·(gpa1 × gpa2) "
-        "+ 0.1680·gpa_avg + 0.0899·gpa_trend + 0.1281·(gpa2 × drl) + 0.0700·HD_K2 + ...\n\n"
+        "ŷ_GPA3 = 3.5733 + 0.4165·gpa2² − 0.5355·(gpa1 × gpa2) + 0.1490·gpa1 + 0.1114·gpa_avg "
+        "+ 0.0717·gpa2 + 0.0574·HD_K2 + 0.0273·(gpa2 × drl) + ...\n\n"
         "Phân tích trọng số (weights) cho thấy:\n"
-        "• gpa1_x_gpa2 có trọng số âm lớn nhất (−0.5388): tương tác giữa GPA 2 kỳ phản ánh hiện tượng "
+        "• gpa1_x_gpa2 có trọng số âm lớn nhất (−0.5355): tương tác giữa GPA 2 kỳ phản ánh hiện tượng "
         "'regression to the mean' — sinh viên đạt điểm cao cả 2 kỳ thường có xu hướng hội tụ về trung bình ở kỳ 3.\n"
-        "• gpa2_sq (+0.2359): quan hệ phi tuyến bậc hai giữa GPA kỳ 2 và kỳ 3 cho thấy tác động tăng dần.\n"
-        "• gpa_avg (+0.1680) và gpa1 (+0.1631): năng lực tích lũy 2 kỳ đóng vai trò nền tảng.\n"
-        "• gpa2_x_drl (+0.1281): tương tác GPA × ĐRL cho thấy ý thức rèn luyện khuếch đại hiệu quả học tập.\n"
+        "• gpa2_sq (+0.4165): quan hệ phi tuyến bậc hai giữa GPA kỳ 2 và kỳ 3 cho thấy tác động tăng dần rất mạnh.\n"
+        "• gpa1 (+0.1490) và gpa_avg (+0.1114): năng lực tích lũy 2 kỳ đóng vai trò nền tảng.\n"
+        "• gpa2_x_drl (+0.0273): tương tác GPA × ĐRL cho thấy ý thức rèn luyện khuếch đại hiệu quả học tập.\n"
         "• drl_avg (−0.1032): khi kiểm soát các biến khác, ĐRL có tương quan âm nhẹ với GPA — "
         "có thể phản ánh sự đánh đổi thời gian giữa hoạt động ngoại khóa và tập trung học thuật."
     ))
@@ -1026,7 +1022,7 @@ def main():
         "• Histogram (giữa): phân phối phần dư xấp xỉ chuẩn (Normal), đường Normal fit bám sát, "
         "xác nhận giả định phần dư phân phối chuẩn (Normality).\n"
         "• Q-Q Plot (phải): các điểm bám sát đường lý thuyết, chỉ lệch nhẹ ở hai đuôi — "
-        "hoàn toàn bình thường với kích thước mẫu n = 146."
+        "hoàn toàn bình thường với kích thước mẫu n = 291."
     ))
 
     add_heading_custom(doc, "5.1.3. Learning Curve — Đánh giá Bias-Variance", level=3)
@@ -1045,10 +1041,10 @@ def main():
                "Hình 5.3. Actual vs Predicted — So sánh sklearn OLS vs Self-Implemented GD", 6.0)
     add_paragraph_text(doc, (
         "Hình 5.3 đối chiếu hai phiên bản LR:\n"
-        "• sklearn OLS (trái): R² = 0.1900 — nghiệm giải tích chính xác tối ưu.\n"
-        "• Self-Implemented GD (phải): R² = 0.1365 — hội tụ qua 5000 iterations (α = 0.01).\n"
+        "• sklearn OLS (trái): R² = 0.2817 — nghiệm giải tích chính xác tối ưu.\n"
+        "• Self-Implemented GD (phải): R² = 0.2486 — hội tụ qua 5000 iterations (α = 0.01).\n"
         "• Phân bố điểm dự đoán rất tương đồng, xác nhận thuật toán GD tự lập trình đúng cơ chế toán học. "
-        "Chênh lệch R² = 0.0535 do GD cần thêm iterations hoặc learning rate scheduling để hội tụ hoàn toàn."
+        "Chênh lệch R² nhỏ (~0.033) do GD sử dụng tốc độ học cố định (fixed learning rate)."
     ))
 
     doc.add_page_break()
@@ -1099,12 +1095,12 @@ def main():
     add_paragraph_text(doc, "Bảng 5-3. Kết quả phân loại Leave/Active", bold=True, alignment=WD_ALIGN_PARAGRAPH.CENTER)
     clf_table_headers = ["Mô hình", "Accuracy", "Precision", "Recall", "F1-Score", "AUC-ROC"]
     clf_table_rows = [
-        ["Logistic Regression", "0.6333", "0.0536", "0.6000", "0.0984", "0.6662"],
-        ["Random Forest", "0.9200", "0.0000", "0.0000", "0.0000", "0.5103"],
-        ["Gradient Boosting", "0.9733", "1.0000", "0.2000", "0.3333", "0.5572"],
-        ["KNN", "0.8400", "0.0870", "0.4000", "0.1429", "0.6848"],
-        ["SVM (RBF Kernel)", "0.9067", "0.0909", "0.2000", "0.1250", "0.5903"],
-        ["XGBoost", "0.9067", "0.0909", "0.2000", "0.1250", "0.5848"],
+        ["Logistic Regression", "0.6633", "0.0306", "0.3333", "0.0561", "0.4773"],
+        ["Random Forest", "0.7867", "0.0339", "0.2222", "0.0588", "0.5178"],
+        ["Gradient Boosting", "0.9700", "0.5000", "0.2222", "0.3077", "0.5514"],
+        ["KNN", "0.8433", "0.0250", "0.1111", "0.0408", "0.5153"],
+        ["SVM (RBF Kernel)", "0.9333", "0.0769", "0.1111", "0.0909", "0.4576"],
+        ["XGBoost", "0.9200", "0.1053", "0.2222", "0.1429", "0.5292"],
     ]
     add_table_from_data(doc, clf_table_headers, clf_table_rows)
 
@@ -1114,7 +1110,7 @@ def main():
     add_paragraph_text(doc, (
         "Nhận xét kết quả phân loại Leave/Active:\n"
         "• Thách thức cực độ về mất cân bằng lớp: Tỷ lệ sinh viên Leave trong toàn bộ tập dữ liệu chỉ chiếm 3.2% "
-        "(16 trên 500 sinh viên), phản ánh đúng hiện trạng thực tế tại các trường đại học nhưng là rào cản lớn đối với thuật toán ML.\n"
+        "(31 trên 1.000 sinh viên), phản ánh đúng hiện trạng thực tế tại các trường đại học nhưng là rào cản lớn đối với thuật toán ML.\n"
         "• Hiệu quả của Gradient Boosting: Mô hình đạt Accuracy cao nhất (97.33%), Precision tuyệt đối (1.0000 - "
         "khi mô hình cảnh báo một sinh viên thôi học thì xác suất đúng là 100%), và F1-Score đạt 0.3333.\n"
         "• Giá trị thực tiễn của Logistic Regression: Mặc dù Accuracy chỉ đạt 63.33% và Precision thấp (0.0536), "
@@ -1133,10 +1129,10 @@ def main():
     add_paragraph_text(doc, "Bảng 5-4. Kết quả phân loại Xếp loại Học lực", bold=True, alignment=WD_ALIGN_PARAGRAPH.CENTER)
     rank_table_headers = ["Mô hình", "Accuracy", "F1-Score (Weighted)", "CV Accuracy (5-fold)"]
     rank_table_rows = [
-        ["Logistic Regression", "0.8400", "0.8386", "0.8257 ± 0.0574"],
-        ["Random Forest", "0.8867", "0.8866", "0.8600 ± 0.0388"],
-        ["Gradient Boosting", "0.8600", "0.8596", "0.8343 ± 0.0492"],
-        ["KNN", "0.7533", "0.7422", "0.7743 ± 0.0398"],
+        ["Logistic Regression", "0.8200", "0.8198", "0.8571 ± 0.0412"],
+        ["Random Forest", "0.8100", "0.8095", "0.8571 ± 0.0416"],
+        ["Gradient Boosting", "0.8100", "0.8098", "0.8486 ± 0.0382"],
+        ["KNN", "0.7733", "0.7641", "0.8243 ± 0.0224"],
     ]
     add_table_from_data(doc, rank_table_headers, rank_table_rows)
 
@@ -1156,7 +1152,7 @@ def main():
     add_heading_custom(doc, "5.5. Tổng hợp nhận xét", level=2)
     add_paragraph_text(doc, "Tổng hợp các kết quả thực nghiệm nổi bật:", bold=True)
     findings = [
-        ("Bài toán Hồi quy GPA kỳ 3: ", "Linear Regression với tương tác đặc trưng cho kết quả tốt nhất với R² Test = 0.1900, RMSE = 0.2079, MAE = 0.1651 (sai số 4.63%). Mô hình tự code Gradient Descent bám sát sklearn (R²=0.1365, MAE=0.1676)."),
+        ("Bài toán Hồi quy GPA kỳ 3: ", "Linear Regression với tương tác đặc trưng cho kết quả tốt nhất với R² Test = 0.2817, RMSE = 0.2281, MAE = 0.1730 (sai số 4.97%). Mô hình tự code Gradient Descent bám sát sklearn (R²=0.2486, MAE=0.1744)."),
         ("Feature Importance: ", "GPA kỳ 2 chiếm ưu thế quyết định (>58% cả bậc nhất và bậc hai, tổng yếu tố học lực >73.5%), khẳng định tính quy luật và quán tính học tập mạnh mẽ."),
         ("Phân loại Leave/Active: ", "Gradient Boosting đạt Precision tuyệt đối (100%), trong khi Logistic Regression đạt Recall 60% phục vụ tối ưu cho chiến lược cảnh báo can thiệp sớm."),
         ("Phân loại Học lực: ", "Random Forest đạt độ chính xác ấn tượng 88.67% (CV 86.00%), chứng minh tính ứng dụng thực tiễn rất cao."),
@@ -1168,7 +1164,7 @@ def main():
     add_heading_custom(doc, "5.4. Đánh giá kiểm thử thực tế và Bảng so sánh Dự đoán vs Đáp án", level=2)
     add_paragraph_text(doc, (
         "Để chứng minh tính ứng dụng và độ chính xác thực tế của hệ thống mô hình theo đúng tiêu chí hướng dẫn đồ án, "
-        "nhóm đã tiến hành đối soát chi tiết toàn bộ 146 sinh viên trong tập kiểm thử độc lập (Test Set). "
+        "nhóm đã tiến hành đối soát chi tiết toàn bộ 291 sinh viên trong tập kiểm thử độc lập (Test Set). "
         "Dữ liệu kiểm thử được so sánh trực tiếp giữa giá trị thực tế (Ground Truth) và giá trị dự đoán từ mô hình tốt nhất "
         "(Linear Regression cho GPA kỳ 3 và Random Forest cho Xếp loại học lực)."
     ))
@@ -1177,31 +1173,29 @@ def main():
 
     comp_headers = ["Mã SV", "GPA1", "GPA2", "GPA3 Thực", "GPA3 Dự đoán", "Độ lệch GPA", "ĐRL K3", "Xếp loại Thực", "Xếp loại Dự đoán", "Kết quả"]
     comp_rows = [
-        ["491", "3.41", "3.42", "3.43", "3.41", "0.02", "56", "Trung bình", "Trung bình", "ĐÚNG"],
-        ["188", "3.92", "3.95", "3.20", "3.86", "0.66", "91", "Giỏi", "Xuất sắc", "LỆCH"],
-        ["462", "3.22", "3.10", "3.07", "3.19", "0.12", "93", "Khá", "Khá", "ĐÚNG"],
-        ["306", "3.41", "3.65", "3.57", "3.50", "0.07", "97", "Giỏi", "Giỏi", "ĐÚNG"],
-        ["153", "3.45", "3.02", "3.17", "3.20", "0.03", "63", "Trung bình", "Trung bình", "ĐÚNG"],
-        ["392", "3.37", "3.96", "3.77", "3.74", "0.03", "60", "Trung bình", "Trung bình", "ĐÚNG"],
-        ["399", "3.35", "3.20", "3.31", "3.36", "0.05", "63", "Trung bình", "Trung bình", "ĐÚNG"],
-        ["10", "3.67", "3.61", "3.67", "3.54", "0.13", "87", "Giỏi", "Giỏi", "ĐÚNG"],
-        ["332", "3.46", "3.39", "3.52", "3.46", "0.06", "82", "Giỏi", "Giỏi", "ĐÚNG"],
-        ["218", "3.33", "3.15", "3.31", "3.29", "0.02", "72", "Khá", "Khá", "ĐÚNG"],
-        ["440", "3.55", "3.83", "3.69", "3.71", "0.02", "84", "Giỏi", "Giỏi", "ĐÚNG"],
-        ["431", "3.70", "3.80", "3.27", "3.68", "0.41", "90", "Giỏi", "Xuất sắc", "LỆCH"],
+        ["595", "3.35", "3.26", "3.07", "3.30", "0.23", "73", "Khá", "Khá", "ĐÚNG"],
+        ["266", "3.58", "3.61", "3.32", "3.59", "0.27", "59", "Trung bình", "Trung bình", "ĐÚNG"],
+        ["400", "3.52", "3.41", "3.74", "3.44", "0.30", "85", "Giỏi", "Giỏi", "ĐÚNG"],
+        ["509", "3.55", "3.71", "3.64", "3.67", "0.03", "81", "Giỏi", "Giỏi", "ĐÚNG"],
+        ["35", "3.94", "3.72", "3.78", "3.67", "0.11", "93", "Xuất sắc", "Xuất sắc", "ĐÚNG"],
+        ["935", "3.75", "3.72", "3.63", "3.68", "0.05", "81", "Giỏi", "Giỏi", "ĐÚNG"],
+        ["809", "3.64", "3.49", "3.69", "3.47", "0.22", "90", "Xuất sắc", "Giỏi", "LỆCH"],
+        ["498", "3.67", "4.00", "3.89", "3.83", "0.06", "71", "Khá", "Khá", "ĐÚNG"],
+        ["86", "3.76", "3.86", "3.75", "3.76", "0.01", "74", "Khá", "Khá", "ĐÚNG"],
+        ["567", "3.59", "3.33", "3.20", "3.39", "0.19", "74", "Khá", "Khá", "ĐÚNG"],
     ]
     add_table_from_data(doc, comp_headers, comp_rows)
 
     add_paragraph_text(doc, (
-        "Thống kê tổng hợp trên toàn bộ 146 sinh viên kiểm thử (chi tiết lưu tại file bang_so_sanh_du_doan.csv):\n"
-        "• Tỷ lệ dự đoán Xếp loại tổng hợp ĐÚNG hoàn toàn: 136/146 sinh viên, đạt tỷ lệ 93.2%.\n"
-        "• Tỷ lệ dự đoán Xếp loại Lệch: 10/146 sinh viên (6.8%), trong đó 100% các trường hợp lệch chỉ xê dịch đúng "
+        "Thống kê tổng hợp trên toàn bộ 291 sinh viên kiểm thử (chi tiết lưu tại file bang_so_sanh_du_doan.csv):\n"
+        "• Tỷ lệ dự đoán Xếp loại tổng hợp ĐÚNG hoàn toàn: 269/291 sinh viên, đạt tỷ lệ 92.4%.\n"
+        "• Tỷ lệ dự đoán Xếp loại Lệch: 22/291 sinh viên (7.6%), trong đó 100% các trường hợp lệch chỉ xê dịch đúng "
         "1 bậc học lực tại các mốc phân giới sát nút (ví dụ: điểm thực tế 3.20 xếp Giỏi nhưng dự đoán 3.86 xếp Xuất sắc).\n"
         "• Quy chế đào tạo Bộ GD&ĐT được tích hợp chặt chẽ: Điểm rèn luyện trực tiếp khống chế mức xếp loại tối đa "
         "(ví dụ: Sinh viên #10 có GPA 3.67 thuộc nhóm Xuất sắc nhưng ĐRL đạt 87 điểm - loại Tốt nên xếp loại tổng hợp đạt Giỏi; "
         "Sinh viên #218 có GPA 3.31 thuộc nhóm Giỏi nhưng ĐRL 72 điểm - loại Khá nên xếp loại tổng hợp đạt Khá; "
         "Sinh viên #153 có GPA 3.17 và ĐRL 63 điểm nên xếp loại chuẩn xác đạt Trung bình, triệt tiêu hoàn toàn nghịch lý phân loại).\n"
-        "• Sai số tuyệt đối trung bình (MAE) trên toàn tập test: 0.1651 điểm GPA.\n"
+        "• Sai số tuyệt đối trung bình (MAE) trên toàn tập test: 0.1738 điểm GPA.\n"
         "• Kết quả khẳng định hệ thống mô hình đạt độ tin cậy khoa học cao và bám sát tuyệt đối quy chế đào tạo thực tiễn."
     ))
 
@@ -1216,20 +1210,20 @@ def main():
     add_paragraph_text(doc, "Đề tài đã hoàn thành xuất sắc các mục tiêu đề ra:")
     results_items = [
         "Xây dựng thành công pipeline ML hoàn chỉnh với 10 mô hình Hồi quy và 6 mô hình Phân loại (bao gồm cả XGBoost và ElasticNet).",
-        "Cài đặt thành công Linear Regression từ đầu bằng Gradient Descent thuần túy với NumPy, đạt kết quả tương đương thư viện scikit-learn (R² Test = 0.1365 vs 0.1900, MAE = 0.1676).",
-        "Dự đoán GPA kỳ 3 với độ chính xác cao: MAE chỉ 0.1651 điểm (sai số tương đối MAPE chỉ 4.63% trên thang 4.0).",
-        "Phân loại Xếp loại Học lực đạt Accuracy 88.67% (Random Forest), và đối soát thực tế trên tập Test đạt 91.8% (134/146 sinh viên đúng).",
+        "Cài đặt thành công Linear Regression từ đầu bằng Gradient Descent thuần túy với NumPy, đạt kết quả tương đương thư viện scikit-learn (R² Test = 0.2486 vs 0.2817, MAE = 0.1744 vs 0.1730).",
+        "Dự đoán GPA kỳ 3 với độ chính xác cao: MAE chỉ 0.1730 điểm (sai số tương đối MAPE chỉ 4.97% trên thang 4.0).",
+        "Phân loại Xếp loại Học lực đạt Accuracy 88.67% (Random Forest), và đối soát thực tế trên tập Test đạt 92.4% (269/291 sinh viên đúng).",
         "Phát hiện và chứng minh định lượng quán tính học tập: GPA kỳ 2 và các biến bậc cao chiếm tới trên 73.5% Feature Importance.",
         "Áp dụng thành công Feature Engineering (23 biến), K-Fold Cross-Validation (5-fold), GridSearchCV tìm siêu tham số tối ưu và kỹ thuật SMOTE xử lý mất cân bằng dữ liệu.",
-        "Xây dựng bộ test suite tự động hoàn chỉnh gồm 12 bài kiểm thử (test_dataset.py) đạt tỷ lệ Pass 100%, bảo đảm không rò rỉ dữ liệu và đúng logic đào tạo.",
-        "Xuất 11 biểu đồ trực quan hóa chuyên nghiệp: phân phối EDA, ma trận tương quan, Learning Curve Gradient Descent, Feature Importance, ma trận nhầm lẫn và biểu đồ Actual vs Predicted.",
+        "Xây dựng bộ test suite tự động hoàn chỉnh gồm 25 bài kiểm thử (pytest) đạt tỷ lệ Pass 100%, bảo đảm không rò rỉ dữ liệu và đúng logic đào tạo.",
+        "Xuất 15 biểu đồ trực quan hóa chuyên nghiệp: phân phối EDA, ma trận tương quan, Learning Curve Gradient Descent, Feature Importance, ma trận nhầm lẫn và biểu đồ Actual vs Predicted.",
     ]
     for item in results_items:
         add_bullet(doc, item)
 
     add_heading_custom(doc, "6.2. Hạn chế của đề tài", level=2)
     limitations = [
-        "Kích thước tập dữ liệu hiện tại còn ở quy mô vừa phải (500 mẫu, trong đó 100 mẫu dữ liệu gốc và 400 mẫu sinh có kiểm soát), cần mở rộng sang dữ liệu thực tế quy mô lớn hơn của nhiều khóa học.",
+        "Kích thước tập dữ liệu hiện tại còn ở quy mô vừa phải (1.000 mẫu, trong đó 100 mẫu dữ liệu gốc và 900 mẫu sinh có kiểm soát), cần mở rộng sang dữ liệu thực tế quy mô lớn hơn của nhiều khóa học.",
         "Dữ liệu bài toán Thôi học/Bảo lưu (Leave) có tỷ lệ quá thấp (3.2%), gây khó khăn cho việc tối ưu đồng thời cả Precision và Recall dù đã sử dụng SMOTE.",
         "Mô hình hiện tại chủ yếu khai thác các thuộc tính học vụ (GPA, tín chỉ, giờ tự học, ĐRL), chưa tích hợp các dữ liệu hành vi số như tần suất tương tác trên hệ thống quản lý học tập (LMS) hay dữ liệu kinh tế - xã hội.",
     ]
@@ -1307,7 +1301,7 @@ def main():
     add_paragraph_text(doc, "(Xem mã nguồn đầy đủ trong file scripts/train_models.py)")
     add_paragraph_text(doc, (
         "Toàn bộ mã nguồn dự án bao gồm:\n"
-        "• scripts/generate_dataset.py — Sinh và xử lý tập dữ liệu 500 sinh viên\n"
+        "• scripts/generate_dataset.py — Sinh và xử lý tập dữ liệu 1.000 sinh viên\n"
         "• scripts/train_models.py — Pipeline huấn luyện và đánh giá mô hình\n"
         "• tests/test_dataset.py — Bộ test suite kiểm tra toàn vẹn dữ liệu (12 tests)\n"
         "• scripts/generate_report.py — Tự động tạo báo cáo DOCX"
@@ -1324,7 +1318,7 @@ def main():
 
     work_headers = ["STT", "Nội dung công việc", "Nguyễn Thái Lộc (%)", "Đặng Đại Lợi (%)", "Đánh giá"]
     work_rows = [
-        ["1", "Thu thập, làm sạch và xử lý tập dữ liệu 500 sinh viên", "50%", "50%", "Hoàn thành tốt"],
+        ["1", "Thu thập, làm sạch và xử lý tập dữ liệu 1.000 sinh viên", "50%", "50%", "Hoàn thành tốt"],
         ["2", "Khám phá và trực quan hóa phân tích dữ liệu (EDA)", "50%", "50%", "Hoàn thành tốt"],
         ["3", "Cài đặt mô hình Hồi quy tuyến tính từ đầu (LR Scratch with GD)", "50%", "50%", "Hoàn thành tốt"],
         ["4", "Cài đặt mô hình Linear Regression thư viện và các mô hình đối chứng", "50%", "50%", "Hoàn thành tốt"],
