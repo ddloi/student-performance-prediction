@@ -55,3 +55,7 @@ pipeline_backup/
 # Local test/build/runtime scratch files (not source or experiment results)
 work/
 .pytest_cache/
+
+# Office temporary lock files
+~$*
+.~lock.*
