@@ -278,7 +278,7 @@ def main():
         alpha=0.7,
         edgecolors="white",
         s=50,
-        label="Dự đoán trên tập Test (146 SV)"
+        label=f"Dự đoán trên tập Test ({len(X_test)} SV)"
     )
     lims = [
         min(preds_test["3. Thư viện (Scikit-Learn OLS)"].min(), preds_test["1. Thủ công (Gradient Descent)"].min()) - 0.1,
@@ -320,19 +320,17 @@ def main():
     print("\n" + "=" * 75)
     print("     TỔNG KẾT BẢN CHẤT KHI TRẢ LỜI CÔ GIÁO")
     print("=" * 75)
-    print("""
+    print(f"""
 1. BẢN CHẤT THUẬT TOÁN:
    - Bản Thư viện (Scikit-Learn): Sử dụng phương pháp OLS giải tích (Closed-form /
      SVD decomposition qua scipy.linalg.lstsq) để tìm nghiệm tối ưu toàn cục tức thời.
    - Bản Thủ công (Gradient Descent): Khởi tạo w=0, cập nhật lặp qua 5000 vòng lặp 
      với learning_rate=0.01 theo đạo hàm của hàm mất mát MSE.
-   - Bản Thủ công (Normal Equation): Áp dụng trực tiếp công thức w = (X^T * X)^(-1) * X^T * y, 
-     kết quả TRÙNG KHỚP 100% với Scikit-Learn tới 4 chữ số thập phân!
+   - Bản Thủ công (Normal Equation): Dùng giả nghịch đảo cho hệ phương trình chuẩn để xử lý các cột phụ thuộc tuyến tính.
 
 2. KẾT QUẢ DỰ ĐOÁN:
-   - Sai số dự đoán giữa bản Thủ công (GD) và Thư viện chỉ chênh lệch cực nhỏ (~0.00 - 0.05 điểm).
-   - RMSE: Thủ công (0.2147) vs Thư viện (0.2079) -> Mức chênh lệch chỉ ~0.0068 (không đáng kể).
-   - Đồ thị Scatter phân tán ôm sát đường chéo y=x, minh chứng thuật toán tự viết đã hội tụ thành công!
+   - Tập kiểm thử có {len(X_test)} sinh viên.
+   - RMSE của GD là {results[0]["RMSE"]:.4f} và của sklearn OLS là {results[2]["RMSE"]:.4f}.
 """)
 
 

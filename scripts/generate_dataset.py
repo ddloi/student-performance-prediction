@@ -20,7 +20,6 @@ def main(total_rows: int = 1000, output_path: str = None):
 
     from student_performance.paths import (
         DATASET_PATH_1000,
-        DATASET_PATH_500,
         RAW_DATA_PATH as RAW_PATH,
     )
 
@@ -35,7 +34,9 @@ def main(total_rows: int = 1000, output_path: str = None):
                 output_path = Path(args.output)
 
     if output_path is None:
-        output_path = DATASET_PATH_1000 if total_rows >= 1000 else DATASET_PATH_500
+        if total_rows != 1000:
+            raise ValueError("Dùng --output để chỉ định file riêng khi số dòng khác 1000.")
+        output_path = DATASET_PATH_1000
 
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)

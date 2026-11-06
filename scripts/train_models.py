@@ -448,14 +448,11 @@ def main():
     df_reg_res = pd.DataFrame(reg_results)
 
     # Thêm dòng kết quả Self-Implemented
-    scratch_cv = cross_val_score(
-        LinearRegression(), X_train_scaled, y_train_r, cv=cv_kfold, scoring="r2"
-    )
     scratch_row = {
         "Model": "Self-Implemented LR (GD)",
         "R² Train": round(r2_scratch_tr, 4),
         "R² Test": round(r2_scratch_te, 4),
-        "R² CV (5-fold)": f"{scratch_cv.mean():.4f} ± {scratch_cv.std():.4f}",
+        "R² CV (5-fold)": "Chưa tính riêng",
         "RMSE": round(rmse_scratch, 4),
         "MAE": round(mae_scratch, 4),
         "MAPE (%)": round(mean_absolute_percentage_error(y_test_r, y_pred_scratch_test) * 100, 2),
@@ -992,10 +989,10 @@ def main():
     report_content = f"""# Báo Cáo Kết Quả Huấn Luyện Mô Hình Machine Learning
 
 - **Tập dữ liệu:** `{DATASET_PATH.name}` ({df.shape[0]} dòng × 24 cột)
-- **Tập thuộc tính đầu vào (Features):** Dữ liệu đến hết kỳ 2 (Hoàn toàn không rò rỉ dữ liệu)
-- **Feature Engineering:** Thêm 6 biến phái sinh (gpa_trend, gpa_avg, study_hours_avg, drl_avg, activity_total, credits_total_k12)
-- **Cross-Validation:** 5-fold CV cho tất cả mô hình
-- **Hyperparameter Tuning:** GridSearchCV cho tất cả mô hình
+- **Tập thuộc tính đầu vào (Features):** Hồi quy dùng dữ liệu kỳ 1–2 và tín chỉ đăng ký kỳ 3. Phân loại dùng dữ liệu kỳ 1–2.
+- **Feature Engineering:** Hồi quy có 11 biến gốc và 12 biến phái sinh. Phân loại có 10 biến gốc và 8 biến phái sinh.
+- **Cross-Validation:** 5-fold CV cho các mô hình có báo cáo CV. Chuẩn hóa và SMOTE (khi dùng) thực hiện trước khi chia fold, nên điểm CV chỉ dùng để tham khảo.
+- **Hyperparameter Tuning:** GridSearchCV cho các mô hình có lưới siêu tham số
 
 ---
 
@@ -1003,14 +1000,13 @@ def main():
 
 Mô hình dự đoán trên {len(df_active)} sinh viên Active ở kỳ 3.
 Tập kiểm thử độc lập: 30% ({len(X_test_r)} sinh viên).
-Feature Engineering: {len(features_reg_enhanced)} biến (11 gốc + 6 phái sinh).
+Feature Engineering: {len(features_reg_enhanced)} biến (11 gốc + 12 phái sinh).
 
 {df_reg_display.to_markdown(index=False)}
 
 ### 📊 Nhận xét:
 - **Mô hình tốt nhất:** `{best_reg_row['Model']}` với R² Test = {best_reg_row['R² Test']}, RMSE = {best_reg_row['RMSE']}, MAE = {best_reg_row['MAE']}
-- **Mô hình tự cài đặt** (Linear Regression bằng Gradient Descent) đạt kết quả tương đương sklearn LinearRegression
-- **Feature Engineering** cải thiện đáng kể so với baseline (thêm gpa_trend, gpa_avg, v.v.)
+- **Mô hình tự cài đặt** (Linear Regression bằng Gradient Descent) được đối chiếu với sklearn LinearRegression trên cùng tập test
 
 ---
 

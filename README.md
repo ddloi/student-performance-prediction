@@ -30,7 +30,7 @@ Predicting student academic progression and retention is a cornerstone challenge
 <p align="center">
   <img src="reports/figures/lr_actual_vs_predicted_comparison.png" alt="Actual vs Predicted Comparison" width="90%" />
   <br/>
-  <em>Figure 1: Actual and predicted Semester 3 GPA. Stored OLS test results: $R^2 = 0.1900$, $\text{MAE} = 0.1651$; see reports/model_training_results.md.</em>
+  <em>Figure 1: Actual and predicted Semester 3 GPA. Stored OLS test results: $R^2 = 0.2817$, $\text{MAE} = 0.1730$; see reports/model_training_results.md.</em>
 </p>
 
 ### 2. Multi-Dimensional Correlation Matrix
@@ -65,10 +65,10 @@ Stored regression results from [reports/model_training_results.md](reports/model
 | Metric | Scikit-Learn OLS | Scratch Gradient Descent |
 | :--- | :---: | :---: |
 | **Mean Absolute Error (MAE)** | **0.1730** | **0.1744** |
-| **Mean Absolute Percentage Error (MAPE)** | **4.88%** | **4.90%** |
+| **Mean Absolute Percentage Error (MAPE)** | **4.97%** | **5.03%** |
 | **$R^2$ Test Score** | **0.2817** | **0.2486** |
 
-The current [artifacts/predictions/bang_so_sanh_du_doan.csv](artifacts/predictions/bang_so_sanh_du_doan.csv) contains **269/291 correct rank comparisons (92.4%)**, with mean GPA error **0.174**. These are CSV comparison results, separate from the regression metrics above and the older report's 134/146 result. The dashboard reads this CSV for its validation table; model-summary metrics are stored values. Live predictions use `artifacts/models/trained_models.joblib`, which is not re-evaluated automatically when the page loads.
+The current [artifacts/predictions/bang_so_sanh_du_doan.csv](artifacts/predictions/bang_so_sanh_du_doan.csv) contains **269/291 correct rank comparisons (92.4%)**, with mean GPA error **0.174**. These are CSV comparison results, separate from the regression metrics above. The dashboard reads the CSV for its validation table and the training report for model metrics. Live predictions use `artifacts/models/trained_models.joblib`, which is not re-evaluated automatically when the page loads.
 
 ### 2. ⚖️ Linear Regression: Self-Implemented (Scratch) vs. Scikit-Learn
 
@@ -80,15 +80,13 @@ To satisfy academic defense and rigorous algorithmic verification, the system pr
   <em>Figure 4: Scatter alignment between Scratch GD vs. Sklearn predictions (left) and top feature coefficient weights comparison (right).</em>
 </p>
 
-| Model Implementation | Mathematical Formulation | $R^2$ Train | $R^2$ Test | RMSE | MAE | MAPE (%) | Bias ($b$) | Fit Time |
-| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **1. Manual (Gradient Descent)** | Iterative GD: $w \leftarrow w - \alpha \frac{1}{n} X^T(\hat{y}-y)$ | 0.3693 | 0.1365 | 0.2147 | 0.1676 | 4.69% | 3.5493 | ~300 ms |
-| **2. Manual (Normal Equation)** | Closed-Form OLS: $w = (X^T X)^{-1} X^T y$ | **0.3759** | **0.1900** | **0.2079** | **0.1651** | **4.63%** | **3.5493** | **~17 ms** |
-| **3. Library (Scikit-Learn OLS)** | LAPACK / SVD Decomposition | **0.3759** | **0.1900** | **0.2079** | **0.1651** | **4.63%** | **3.5493** | ~84 ms |
+| Model | R² Train | R² Test | RMSE | MAE | MAPE | Bias |
+| :--- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Scratch Gradient Descent | 0.3507 | 0.2486 | 0.2333 | 0.1744 | 5.03% | 3.5733 |
+| Manual OLS (pseudoinverse) | 0.3569 | 0.2817 | 0.2281 | 0.1730 | 4.97% | 3.5733 |
+| Scikit-Learn OLS | 0.3569 | 0.2817 | 0.2281 | 0.1730 | 4.97% | 3.5733 |
 
-> 💡 **Key Takeaways for Defense / Viva**:
-> - **Numerical Comparison**: The displayed Normal Equation and Scikit-Learn metrics agree at the reported precision; this does not establish exact equality across all decimal places.
-> - **Gradient Descent**: The stored 5,000-iteration GD result has RMSE 0.2147 versus OLS 0.2079 (difference approximately 0.0068).
+The comparison script reproduces these values on the same 291 test rows. The two OLS implementations agree at the precision shown.
 
 ---
 
@@ -182,7 +180,7 @@ These commands can overwrite their corresponding generated files. Importing the 
 | `python -m scripts.generate_dataset` | `data/raw/simul_combined_lab.csv` | `data/processed/student_dataset_1000.csv` |
 | `python -m scripts.train_models` | Processed dataset | `reports/model_training_results.md`, research plots, prediction CSV |
 | `python -m scripts.compare_linear_regression` | Processed dataset | `reports/figures/so_sanh_linear_regression.png` |
-| `python -m scripts.generate_report` | Research plots and report content in the script | `reports/BaoCao_DoAn_HocMay.docx` |
+| `python -m scripts.generate_report` | Research plots and the older report template | `work/BaoCao_DoAn_HocMay_Nhap.docx` |
 
 The full experiment script and the web inference engine have separate training paths. Running `scripts.train_models` produces evaluation artifacts; it does **not** refresh the web model cache. To rebuild that cache explicitly:
 
@@ -190,7 +188,7 @@ The full experiment script and the web inference engine have separate training p
 python -m student_performance.engine --retrain
 ```
 
-Restart the web server after rebuilding the cache. Changing the processed dataset or regenerating a report also does not automatically synchronize all artifacts. Keep the model cache, prediction CSV, saved metrics and Word report aligned deliberately when repeating an experiment. The `/api/models-summary` endpoint still returns stored metrics and is not recalculated automatically.
+Restart the web server after rebuilding the cache. Changing the processed dataset or regenerating a report also does not automatically synchronize all artifacts. Keep the model cache, prediction CSV, saved metrics and Word report aligned deliberately when repeating an experiment. The `/api/models-summary` endpoint reads the saved experiment report. The Word download serves the reviewed 1,000-sample report at `reports/BaoCao_DoAn_HocMay.docx`.
 
 ---
 

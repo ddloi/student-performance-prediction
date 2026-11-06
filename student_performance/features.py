@@ -35,18 +35,18 @@ def engineer_features_dict(data: dict) -> tuple[pd.DataFrame, pd.DataFrame]:
         "Tin_Chi_K3": float(data.get("Tin_Chi_K3", 15.0)),
     }])
 
-    df_reg["gpa_trend"] = df_reg["gpa2"] - df_reg["gpa1"]
-    df_reg["gpa_avg"] = (df_reg["gpa1"] + df_reg["gpa2"]) / 2
-    df_reg["study_hours_avg"] = (df_reg["So_Gio_Tu_Hoc_K1"] + df_reg["So_Gio_Tu_Hoc_K2"]) / 2
-    df_reg["drl_avg"] = (df_reg["Diem_Ren_Luyen_K1"] + df_reg["Diem_Ren_Luyen_K2"]) / 2
+    df_reg["gpa_trend"] = df_reg["gpa2"] - df_reg["gpa1"] #GPA kỳ 2 giảm
+    df_reg["gpa_avg"] = (df_reg["gpa1"] + df_reg["gpa2"]) / 2 #GPT trung bình 2 kỳ
+    df_reg["study_hours_avg"] = (df_reg["So_Gio_Tu_Hoc_K1"] + df_reg["So_Gio_Tu_Hoc_K2"]) / 2   #TB số giờ tự học 2 kỳ
+    df_reg["drl_avg"] = (df_reg["Diem_Ren_Luyen_K1"] + df_reg["Diem_Ren_Luyen_K2"]) / 2 #TB điểm rèn luyện 2 kỳ
     df_reg["activity_total"] = df_reg["So_Lan_Tham_Gia_HD_K1"] + df_reg["So_Lan_Tham_Gia_HD_K2"]
-    df_reg["credits_total_k12"] = df_reg["Tin_Chi_K1"] + df_reg["Tin_Chi_K2"]
-    df_reg["gpa2_sq"] = df_reg["gpa2"] ** 2
-    df_reg["gpa1_x_gpa2"] = df_reg["gpa1"] * df_reg["gpa2"]
-    df_reg["gpa_trend_x_hours"] = df_reg["gpa_trend"] * df_reg["study_hours_avg"]
+    df_reg["credits_total_k12"] = df_reg["Tin_Chi_K1"] + df_reg["Tin_Chi_K2"] #Tổng số tín chỉ 2 kỳ
+    df_reg["gpa2_sq"] = df_reg["gpa2"] ** 2 #Đặc trưng bình phương
+    df_reg["gpa1_x_gpa2"] = df_reg["gpa1"] * df_reg["gpa2"] #tương tác 2 GPA
+    df_reg["gpa_trend_x_hours"] = df_reg["gpa_trend"] * df_reg["study_hours_avg"] #Tương tác giữa xu hướng GPA và số giờ tự học trung bình
     df_reg["gpa2_x_drl"] = df_reg["gpa2"] * df_reg["drl_avg"] / 100
-    df_reg["study_trend"] = df_reg["So_Gio_Tu_Hoc_K2"] - df_reg["So_Gio_Tu_Hoc_K1"]
-    df_reg["drl_trend"] = df_reg["Diem_Ren_Luyen_K2"] - df_reg["Diem_Ren_Luyen_K1"]
+    df_reg["study_trend"] = df_reg["So_Gio_Tu_Hoc_K2"] - df_reg["So_Gio_Tu_Hoc_K1"] #Gio tự học kỳ 2 thay đổi so với kỳ 1
+    df_reg["drl_trend"] = df_reg["Diem_Ren_Luyen_K2"] - df_reg["Diem_Ren_Luyen_K1"] #Điểm rèn luyện kỳ 2 thay đổi so với kỳ 1
 
     df_reg = df_reg[FEATURE_ORDER_REG]
 

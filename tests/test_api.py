@@ -24,6 +24,17 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn('lang="vi"', response.text)
 
+    def test_model_summary_matches_published_experiment(self):
+        response = self.client.get("/api/models-summary")
+        self.assertEqual(response.status_code, 200)
+        summary = response.json()
+        regression = {row["model"]: row for row in summary["regression"]}
+        self.assertEqual(regression["Linear Regression (sklearn)"]["r2_test"], 0.2817)
+        self.assertEqual(regression["Self-Implemented LR (GD)"]["r2_test"], 0.2486)
+        self.assertEqual(regression["Self-Implemented LR (GD)"]["r2_cv"], "Chưa tính riêng")
+        self.assertEqual([row["model"] for row in summary["classification_rank"] if row["best"]],
+                         ["Logistic Regression"])
+
     def test_each_model_matches_its_comparison(self):
         names = {
             "Linear Regression (Scratch GD)": "Linear Regression (Scratch GD)",

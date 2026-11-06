@@ -45,10 +45,10 @@ The prediction route obtains the inference engine through `get_engine()`. Import
 2. `python -m tests.test_dataset` checks its 12 declared consistency rules.
 3. `python -m scripts.train_models` evaluates the experiment pipeline and writes plots, a metrics report and prediction comparisons.
 4. `python -m scripts.compare_linear_regression` writes the standalone manual-versus-library comparison plot.
-5. `python -m scripts.generate_report` builds the Word document from the script's report content and saved plots.
+5. `python -m scripts.generate_report` writes a draft in `work/` from the older template and saved plots. The download serves the reviewed report in `reports/`.
 6. The web inference engine separately loads `artifacts/models/trained_models.joblib`. Use `python -m student_performance.engine --retrain` to rebuild its cache deliberately, then restart the server.
 
-Regenerating one artifact does not refresh every other artifact. In particular, running the experiment script does not update the web cache, and the model-summary API still contains stored metrics. A repeatable experiment should deliberately align the processed dataset, web cache, comparison CSV, metrics and report before presenting results.
+Regenerating one artifact does not refresh every other artifact. In particular, running the experiment script does not update the web cache, and the model-summary API reads the metrics report. A repeatable experiment should deliberately align the processed dataset, web cache, comparison CSV, metrics and report before presenting results.
 
 The existing artifact set is preserved during the structural refactor. Moving files does not constitute retraining or revalidation of the scientific results.
 
@@ -70,4 +70,4 @@ Launch module commands from the repository root, or configure Python's import pa
 
 Run `python -m unittest discover -s tests -v` for the complete available suite. API and structural tests guard operational behavior, including saved-model compatibility; dataset checks verify selected consistency constraints. Passing them is not a full scientific audit of splitting, leakage, calibration or generalization.
 
-Stored regression results currently report OLS R² Test of 0.1900 and Scratch GD R² Test of 0.1365. The current comparison CSV reports 136/146 correct ranks (93.15%) and mean GPA error around 0.166; these are different measurements and should not be conflated. The warning index uses demo heuristics and should not be described as a calibrated dropout probability or an official university decision.
+Stored regression results currently report OLS R² Test of 0.2817 and Scratch GD R² Test of 0.2486. The current comparison CSV reports 269/291 matching ranks (92.44%) and mean GPA error around 0.174; these are different measurements and should not be conflated. The warning index uses demo heuristics and should not be described as a calibrated dropout probability or an official university decision.

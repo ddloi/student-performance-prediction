@@ -1,10 +1,10 @@
 # Báo Cáo Kết Quả Huấn Luyện Mô Hình Machine Learning
 
 - **Tập dữ liệu:** `student_dataset_1000.csv` (1000 dòng × 24 cột)
-- **Tập thuộc tính đầu vào (Features):** Dữ liệu đến hết kỳ 2 (Hoàn toàn không rò rỉ dữ liệu)
-- **Feature Engineering:** Thêm 6 biến phái sinh (gpa_trend, gpa_avg, study_hours_avg, drl_avg, activity_total, credits_total_k12)
-- **Cross-Validation:** 5-fold CV cho tất cả mô hình
-- **Hyperparameter Tuning:** GridSearchCV cho tất cả mô hình
+- **Tập thuộc tính đầu vào (Features):** Hồi quy dùng dữ liệu kỳ 1–2 và tín chỉ đăng ký kỳ 3. Phân loại dùng dữ liệu kỳ 1–2.
+- **Feature Engineering:** Hồi quy có 11 biến gốc và 12 biến phái sinh. Phân loại có 10 biến gốc và 8 biến phái sinh.
+- **Cross-Validation:** 5-fold CV cho các mô hình có báo cáo CV. Chuẩn hóa và SMOTE (khi dùng) thực hiện trước khi chia fold, nên điểm CV chỉ dùng để tham khảo.
+- **Hyperparameter Tuning:** GridSearchCV cho các mô hình có lưới siêu tham số
 
 ---
 
@@ -12,11 +12,11 @@
 
 Mô hình dự đoán trên 969 sinh viên Active ở kỳ 3.
 Tập kiểm thử độc lập: 30% (291 sinh viên).
-Feature Engineering: 23 biến (11 gốc + 6 phái sinh).
+Feature Engineering: 23 biến (11 gốc + 12 phái sinh).
 
 | Model                    |   R² Train |   R² Test | R² CV (5-fold)   |   RMSE |    MAE |   MAPE (%) |
 |:-------------------------|-----------:|----------:|:-----------------|-------:|-------:|-----------:|
-| Self-Implemented LR (GD) |     0.3507 |    0.2486 | 0.3123 ± 0.0722  | 0.2333 | 0.1744 |       5.03 |
+| Self-Implemented LR (GD) |     0.3507 |    0.2486 | Chưa tính riêng  | 0.2333 | 0.1744 |       5.03 |
 | Linear Regression        |     0.3569 |    0.2817 | 0.3123 ± 0.0722  | 0.2281 | 0.173  |       4.97 |
 | Ridge Regression         |     0.3521 |    0.2603 | 0.3161 ± 0.0677  | 0.2315 | 0.1736 |       5    |
 | Lasso Regression         |     0.3524 |    0.2765 | 0.3212 ± 0.0686  | 0.2289 | 0.1717 |       4.95 |
@@ -29,8 +29,7 @@ Feature Engineering: 23 biến (11 gốc + 6 phái sinh).
 
 ### 📊 Nhận xét:
 - **Mô hình tốt nhất:** `Random Forest` với R² Test = 0.2838, RMSE = 0.2278, MAE = 0.1724
-- **Mô hình tự cài đặt** (Linear Regression bằng Gradient Descent) đạt kết quả tương đương sklearn LinearRegression
-- **Feature Engineering** cải thiện đáng kể so với baseline (thêm gpa_trend, gpa_avg, v.v.)
+- **Mô hình tự cài đặt** (Linear Regression bằng Gradient Descent) được đối chiếu với sklearn LinearRegression trên cùng tập test
 
 ---
 

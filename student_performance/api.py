@@ -16,7 +16,7 @@ from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel, Field
 
 from .engine import MLModelManager, get_engine
-from .paths import COMPARE_CSV, DATASET_PATH as DATASET_CSV, FIGURES_DIR, REPORT_DOCX, STATIC_DIR
+from .paths import COMPARE_CSV, DATASET_PATH as DATASET_CSV, FIGURES_DIR, REPORT_DOCX, STATIC_DIR, TRAINING_REPORT_PATH
 
 app = FastAPI(
     title="Hệ thống Dự đoán Kết quả Học tập Sinh viên",
@@ -75,43 +75,71 @@ def get_equation(manager: MLModelManager = Depends(get_engine)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+def _training_table(report: str, section: int) -> list[dict[str, str]]:
+    """Read a table from the Markdown written by scripts.train_models."""
+    body = report.split(f"\n## {section}. ", 1)[1].split("\n## ", 1)[0]
+    header, _, *rows = [
+        [cell.strip() for cell in line.strip().strip("|").split("|")]
+        for line in body.splitlines() if line.startswith("|")
+    ]
+    if not rows:
+        raise ValueError("Bảng kết quả rỗng.")
+    return [dict(zip(header, row, strict=True)) for row in rows]
+
+
 @app.get("/api/models-summary")
 def get_models_summary():
-    """Lấy dữ liệu hiệu năng các mô hình Hồi quy và Phân loại."""
-    regression_models = [
-        {"model": "Self-Implemented LR (GD)", "is_core": True, "type": "Tự cài đặt", "r2_train": 0.3693, "r2_test": 0.1365, "r2_cv": "0.2222 ± 0.1981", "rmse": 0.2147, "mae": 0.1676, "mape": 4.69},
-        {"model": "Linear Regression (sklearn)", "is_core": True, "type": "Thư viện OLS", "r2_train": 0.3759, "r2_test": 0.1900, "r2_cv": "0.2222 ± 0.1981", "rmse": 0.2079, "mae": 0.1651, "mape": 4.63},
-        {"model": "Ridge Regression", "is_core": False, "type": "Regularized L2", "r2_train": 0.3667, "r2_test": 0.1471, "r2_cv": "0.2405 ± 0.1884", "rmse": 0.2134, "mae": 0.1663, "mape": 4.65},
-        {"model": "Lasso Regression", "is_core": False, "type": "Regularized L1", "r2_train": 0.3572, "r2_test": 0.1568, "r2_cv": "0.2432 ± 0.1790", "rmse": 0.2121, "mae": 0.1668, "mape": 4.67},
-        {"model": "ElasticNet", "is_core": False, "type": "Regularized L1+L2", "r2_train": 0.3557, "r2_test": 0.1569, "r2_cv": "0.2434 ± 0.1778", "rmse": 0.2121, "mae": 0.1670, "mape": 4.68},
-        {"model": "Random Forest Regressor", "is_core": False, "type": "Ensemble Bagging", "r2_train": 0.5003, "r2_test": 0.1651, "r2_cv": "0.2450 ± 0.1882", "rmse": 0.2111, "mae": 0.1709, "mape": 4.79},
-        {"model": "Gradient Boosting Regressor", "is_core": False, "type": "Ensemble Boosting", "r2_train": 0.5820, "r2_test": 0.1496, "r2_cv": "0.1998 ± 0.1675", "rmse": 0.2130, "mae": 0.1700, "mape": 4.76},
-        {"model": "SVR (RBF Kernel)", "is_core": False, "type": "Kernel Method", "r2_train": 0.3554, "r2_test": 0.1743, "r2_cv": "0.1515 ± 0.1285", "rmse": 0.2099, "mae": 0.1705, "mape": 4.78},
-        {"model": "XGBoost Regressor", "is_core": False, "type": "Extreme Boosting", "r2_train": 0.5622, "r2_test": 0.1725, "r2_cv": "0.2336 ± 0.1397", "rmse": 0.2102, "mae": 0.1676, "mape": 4.69},
-        {"model": "Decision Tree Regressor", "is_core": False, "type": "Single Tree", "r2_train": 0.4351, "r2_test": -0.0289, "r2_cv": "0.2601 ± 0.1350", "rmse": 0.2343, "mae": 0.1821, "mape": 5.12},
-    ]
-
-    classification_rank_models = [
-        {"model": "Random Forest", "best": True, "accuracy": 0.8867, "f1_weighted": 0.8866, "cv_acc": "0.8600 ± 0.0388"},
-        {"model": "Gradient Boosting", "best": False, "accuracy": 0.8600, "f1_weighted": 0.8596, "cv_acc": "0.8343 ± 0.0492"},
-        {"model": "Logistic Regression", "best": False, "accuracy": 0.8400, "f1_weighted": 0.8386, "cv_acc": "0.8257 ± 0.0574"},
-        {"model": "KNN", "best": False, "accuracy": 0.7533, "f1_weighted": 0.7422, "cv_acc": "0.7743 ± 0.0398"},
-    ]
-
-    classification_leave_models = [
-        {"model": "Gradient Boosting", "best": True, "accuracy": 0.9733, "precision": 1.0000, "recall": 0.2000, "f1_score": 0.3333, "auc": 0.5572},
-        {"model": "Random Forest", "best": False, "accuracy": 0.9200, "precision": 0.0000, "recall": 0.0000, "f1_score": 0.0000, "auc": 0.5103},
-        {"model": "Logistic Regression (SMOTE)", "best": False, "accuracy": 0.6333, "precision": 0.0536, "recall": 0.6000, "f1_score": 0.0984, "auc": 0.6662},
-        {"model": "SVM", "best": False, "accuracy": 0.9067, "precision": 0.0909, "recall": 0.2000, "f1_score": 0.1250, "auc": 0.5903},
-        {"model": "XGBoost", "best": False, "accuracy": 0.9067, "precision": 0.0909, "recall": 0.2000, "f1_score": 0.1250, "auc": 0.5848},
-        {"model": "KNN", "best": False, "accuracy": 0.8400, "precision": 0.0870, "recall": 0.4000, "f1_score": 0.1429, "auc": 0.6848},
-    ]
-
-    return {
-        "regression": regression_models,
-        "classification_rank": classification_rank_models,
-        "classification_leave": classification_leave_models,
+    """Lấy kết quả thực nghiệm đã lưu từ báo cáo huấn luyện."""
+    regression_types = {
+        "Self-Implemented LR (GD)": "Tự cài đặt",
+        "Linear Regression": "Thư viện OLS",
+        "Ridge Regression": "L2",
+        "Lasso Regression": "L1",
+        "ElasticNet": "L1 + L2",
+        "Random Forest": "Bagging",
+        "Gradient Boosting": "Boosting",
+        "SVR": "Kernel RBF",
+        "XGBoost": "Boosting",
+        "Decision Tree": "Cây quyết định",
     }
+    try:
+        report = TRAINING_REPORT_PATH.read_text(encoding="utf-8")
+        if f"`{DATASET_CSV.name}`" not in report:
+            raise ValueError("Báo cáo không khớp dataset hiện tại.")
+        regression = []
+        for row in _training_table(report, 1):
+            name = row["Model"]
+            regression.append({
+                "model": "Linear Regression (sklearn)" if name == "Linear Regression" else name,
+                "is_core": name in {"Self-Implemented LR (GD)", "Linear Regression"},
+                "type": regression_types.get(name, "Đối chứng"),
+                "r2_train": float(row["R² Train"]),
+                "r2_test": float(row["R² Test"]),
+                "r2_cv": row["R² CV (5-fold)"],
+                "rmse": float(row["RMSE"]),
+                "mae": float(row["MAE"]),
+                "mape": float(row["MAPE (%)"]),
+            })
+        rank = [
+            {"model": row["Model"], "accuracy": float(row["Accuracy"]),
+             "f1_weighted": float(row["F1-Score (Weighted)"]),
+             "cv_acc": row["CV Accuracy (5-fold)"]}
+            for row in _training_table(report, 4)
+        ]
+        leave = [
+            {"model": row["Model"], "accuracy": float(row["Accuracy"]),
+             "precision": float(row["Precision"]), "recall": float(row["Recall"]),
+             "f1_score": float(row["F1-Score"]), "auc": float(row["AUC-ROC"])}
+            for row in _training_table(report, 3)
+        ]
+    except (OSError, ValueError, IndexError, KeyError) as exc:
+        raise HTTPException(status_code=503, detail="Chưa có bảng kết quả phù hợp với dataset.") from exc
+
+    for models, metric in ((rank, "accuracy"), (leave, "f1_score")):
+        best = max(models, key=lambda row: row[metric])
+        for row in models:
+            row["best"] = row is best
+    return {"regression": regression, "classification_rank": rank, "classification_leave": leave}
 
 
 @app.get("/api/test-samples")
@@ -121,7 +149,7 @@ def get_test_samples(
     filter_result: Optional[str] = Query(None, description="Lọc: ĐÚNG, LỆCH hoặc all"),
     search: Optional[str] = Query(None, description="Tìm theo ID")
 ):
-    """Lấy danh sách dữ liệu kiểm chứng 146 sinh viên."""
+    """Lấy danh sách dữ liệu kiểm chứng."""
     if not COMPARE_CSV.exists():
         raise HTTPException(status_code=404, detail="File bảng so sánh không tồn tại.")
 
@@ -208,7 +236,7 @@ def download_report():
 
 @app.get("/download/compare-csv")
 def download_compare_csv():
-    """Tải file CSV kết quả so sánh 146 sinh viên."""
+    """Tải file CSV kết quả so sánh kiểm thử."""
     if not COMPARE_CSV.exists():
         raise HTTPException(status_code=404, detail="File CSV chưa được tạo.")
     return FileResponse(

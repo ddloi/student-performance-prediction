@@ -1,7 +1,7 @@
 """
 Script tạo Báo cáo đồ án cuối kỳ Học máy (DOCX)
 =================================================
-Tự động tạo file báo cáo chi tiết theo mẫu của trường HUFLIT.
+Tạo bản nháp theo mẫu cũ để tham khảo bố cục. Các bảng tĩnh cần đối chiếu với kết quả thực nghiệm.
 Chạy: python -m scripts.generate_report
 """
 
@@ -24,7 +24,8 @@ def main():
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
 
-    from student_performance.paths import FIGURES_DIR, REPORT_DOCX, PROJECT_ROOT as BASE_DIR
+    from student_performance.paths import FIGURES_DIR, PROJECT_ROOT as BASE_DIR
+    REPORT_DOCX = BASE_DIR / "work" / "BaoCao_DoAn_HocMay_Nhap.docx"
     REPORT_DOCX.parent.mkdir(parents=True, exist_ok=True)
 
     # ============================================================
