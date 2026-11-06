@@ -65,7 +65,7 @@ class StructureTests(unittest.TestCase):
                 for name in (
                     'student_performance.engine', 'student_performance.api',
                     'scripts.generate_dataset', 'scripts.train_models',
-                    'scripts.compare_linear_regression', 'scripts.generate_report',
+                    'scripts.compare_linear_regression', 'scripts.generate_report', 'scripts.plots',
                     'tests.test_dataset',
                 ):
                     importlib.import_module(name)

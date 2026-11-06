@@ -16,6 +16,7 @@ from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel, Field
 
 from .engine import MLModelManager, get_engine
+from .features import BASE_FEATURES_REG
 from .paths import COMPARE_CSV, DATASET_PATH as DATASET_CSV, FIGURES_DIR, REPORT_DOCX, STATIC_DIR, TRAINING_REPORT_PATH
 
 app = FastAPI(
@@ -87,9 +88,7 @@ def _training_table(report: str, section: int) -> list[dict[str, str]]:
     return [dict(zip(header, row, strict=True)) for row in rows]
 
 
-@app.get("/api/models-summary")
-def get_models_summary():
-    """Lấy kết quả thực nghiệm đã lưu từ báo cáo huấn luyện."""
+def _read_model_summaries(report):
     regression_types = {
         "Self-Implemented LR (GD)": "Tự cài đặt",
         "Linear Regression": "Thư viện OLS",
@@ -102,36 +101,44 @@ def get_models_summary():
         "XGBoost": "Boosting",
         "Decision Tree": "Cây quyết định",
     }
+
+    regression = []
+    for row in _training_table(report, 1):
+        name = row["Model"]
+        regression.append({
+            "model": "Linear Regression (sklearn)" if name == "Linear Regression" else name,
+            "is_core": name in {"Self-Implemented LR (GD)", "Linear Regression"},
+            "type": regression_types.get(name, "Đối chứng"),
+            "r2_train": float(row["R² Train"]),
+            "r2_test": float(row["R² Test"]),
+            "r2_cv": row["R² CV (5-fold)"],
+            "rmse": float(row["RMSE"]),
+            "mae": float(row["MAE"]),
+            "mape": float(row["MAPE (%)"]),
+        })
+    rank = [
+        {"model": row["Model"], "accuracy": float(row["Accuracy"]),
+         "f1_weighted": float(row["F1-Score (Weighted)"]),
+         "cv_acc": row["CV Accuracy (5-fold)"]}
+        for row in _training_table(report, 4)
+    ]
+    leave = [
+        {"model": row["Model"], "accuracy": float(row["Accuracy"]),
+         "precision": float(row["Precision"]), "recall": float(row["Recall"]),
+         "f1_score": float(row["F1-Score"]), "auc": float(row["AUC-ROC"])}
+        for row in _training_table(report, 3)
+    ]
+    return regression, rank, leave
+
+
+@app.get("/api/models-summary")
+def get_models_summary():
+    """Lấy kết quả thực nghiệm đã lưu từ báo cáo huấn luyện."""
     try:
         report = TRAINING_REPORT_PATH.read_text(encoding="utf-8")
         if f"`{DATASET_CSV.name}`" not in report:
             raise ValueError("Báo cáo không khớp dataset hiện tại.")
-        regression = []
-        for row in _training_table(report, 1):
-            name = row["Model"]
-            regression.append({
-                "model": "Linear Regression (sklearn)" if name == "Linear Regression" else name,
-                "is_core": name in {"Self-Implemented LR (GD)", "Linear Regression"},
-                "type": regression_types.get(name, "Đối chứng"),
-                "r2_train": float(row["R² Train"]),
-                "r2_test": float(row["R² Test"]),
-                "r2_cv": row["R² CV (5-fold)"],
-                "rmse": float(row["RMSE"]),
-                "mae": float(row["MAE"]),
-                "mape": float(row["MAPE (%)"]),
-            })
-        rank = [
-            {"model": row["Model"], "accuracy": float(row["Accuracy"]),
-             "f1_weighted": float(row["F1-Score (Weighted)"]),
-             "cv_acc": row["CV Accuracy (5-fold)"]}
-            for row in _training_table(report, 4)
-        ]
-        leave = [
-            {"model": row["Model"], "accuracy": float(row["Accuracy"]),
-             "precision": float(row["Precision"]), "recall": float(row["Recall"]),
-             "f1_score": float(row["F1-Score"]), "auc": float(row["AUC-ROC"])}
-            for row in _training_table(report, 3)
-        ]
+        regression, rank, leave = _read_model_summaries(report)
     except (OSError, ValueError, IndexError, KeyError) as exc:
         raise HTTPException(status_code=503, detail="Chưa có bảng kết quả phù hợp với dataset.") from exc
 
@@ -204,22 +211,9 @@ def get_student_detail(stud_id: int):
     if match.empty:
         raise HTTPException(status_code=404, detail=f"Không tìm thấy sinh viên #{stud_id}.")
     row = match.iloc[0]
-    return {
-        "stud_id": int(row["stud_id"]),
-        "gpa1": float(row["gpa1"]),
-        "Tin_Chi_K1": float(row["Tin_Chi_K1"]),
-        "So_Gio_Tu_Hoc_K1": float(row["So_Gio_Tu_Hoc_K1"]),
-        "So_Lan_Tham_Gia_HD_K1": float(row["So_Lan_Tham_Gia_HD_K1"]),
-        "Diem_Ren_Luyen_K1": float(row["Diem_Ren_Luyen_K1"]),
-        "gpa2": float(row["gpa2"]),
-        "Tin_Chi_K2": float(row["Tin_Chi_K2"]),
-        "So_Gio_Tu_Hoc_K2": float(row["So_Gio_Tu_Hoc_K2"]),
-        "So_Lan_Tham_Gia_HD_K2": float(row["So_Lan_Tham_Gia_HD_K2"]),
-        "Diem_Ren_Luyen_K2": float(row["Diem_Ren_Luyen_K2"]),
-        "Tin_Chi_K3": float(row["Tin_Chi_K3"]),
-        "Diem_Ren_Luyen_K3": float(row["Diem_Ren_Luyen_K3"]),
-        "actual_gpa3": float(row["gpa3"]),
-    }
+    values = {name: float(row[name]) for name in [*BASE_FEATURES_REG, "Diem_Ren_Luyen_K3"]}
+    return {"stud_id": int(row["stud_id"]), **values, "actual_gpa3": float(row["gpa3"])}
+
 
 
 @app.get("/download/report")

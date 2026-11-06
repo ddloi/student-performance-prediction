@@ -1,5 +1,7 @@
 # Học đồ án dự đoán kết quả học tập từ đầu
 
+> Cập nhật cấu trúc code: công thức đặc trưng dùng chung nằm ở `student_performance/features.py`; GD và OLS thủ công nằm ở `student_performance/models.py`; EDA nằm ở `scripts/plots.py`. `scripts/train_models.py` gọi các phần này, nên số dòng trong ví dụ cũ có thể đã thay đổi. Công thức và kết quả tính toán được giữ nguyên.
+
 Tài liệu này dành cho người mới đọc code. Mục tiêu: bạn có thể tự chạy đồ án, lần theo một yêu cầu từ giao diện đến mô hình, giải thích từng phép tính chính và trả lời câu hỏi bảo vệ. Mỗi đoạn code có đường dẫn tương đối tính từ thư mục gốc project. Mở file bằng VS Code và tìm tên hàm hoặc đoạn code đi kèm; số dòng có thể thay đổi khi sửa project.
 
 ## 1. Bài toán là gì?

@@ -3,7 +3,7 @@ let radarChartInstance = null;
 let r2ChartInstance = null;
 let weightsChartInstance = null;
 let currentTestPage = 1;
-const pageSize = 12;
+const TEST_PAGE_SIZE = 12;
 let predictionController, samplesController, studentController;
 let predictionRequest = 0,
   samplesRequest = 0,
@@ -406,11 +406,22 @@ async function triggerPrediction(context = "") {
 }
 
 function renderPredictionResults(result, input) {
+  renderGpaResult(result);
+  renderRankResult(result);
+  renderRiskResult(result.leave_risk);
+  renderModelComparison(result.model_comparison);
+  updateRadarChart(input);
+}
+
+function renderGpaResult(result) {
   const gpa = result.predicted_gpa3;
   setText("res-gpa3", numberText(gpa));
   setText("result-model-badge", result.selected_model);
   byId("res-gauge-fill").style.width =
     `${Math.min(Math.max((gpa / 4) * 100, 0), 100)}%`;
+}
+
+function renderRankResult(result) {
   const rank = result.predicted_rank_rule || result.predicted_rank_ml;
   const classes = {
     "Xuất sắc": "rank-xuat-sac",
@@ -430,7 +441,9 @@ function renderPredictionResults(result, input) {
     );
     byId("res-rank-note").style.display = "block";
   }
-  const risk = result.leave_risk;
+}
+
+function renderRiskResult(risk) {
   byId("res-risk").className =
     `risk-badge ${risk.level === "CẢNH BÁO CAO" ? "risk-danger" : risk.level === "CẦN LƯU Ý" ? "risk-warning" : "risk-safe"}`;
   setText(
@@ -448,14 +461,15 @@ function renderPredictionResults(result, input) {
     `${riskContext} Chỉ số cảnh báo: ${risk.probability}/100.`,
   );
   byId("res-risk-note").style.display = "block";
-  const comparison = result.model_comparison;
+}
+
+function renderModelComparison(comparison) {
   [
     ["cmp-scratch", "Linear Regression (Scratch GD)"],
     ["cmp-sklearn", "Linear Regression (sklearn OLS)"],
     ["cmp-ridge", "Ridge Regression"],
     ["cmp-rf", "Random Forest Regressor"],
   ].forEach(([id, model]) => setText(id, numberText(comparison[model])));
-  updateRadarChart(input);
 }
 
 function chartAvailable(canvasId, explanation) {
@@ -718,7 +732,7 @@ async function loadTestSamples(page = 1) {
   const search = byId("search-id-input")?.value.trim() || "";
   const params = new URLSearchParams({
     page: String(Math.max(1, page)),
-    page_size: String(pageSize),
+    page_size: String(TEST_PAGE_SIZE),
   });
   if (filter !== "all") params.set("filter_result", filter);
   if (search) params.set("search", search);

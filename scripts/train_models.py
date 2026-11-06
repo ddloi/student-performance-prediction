@@ -14,16 +14,13 @@ Chạy: python -m scripts.train_models
 def main():
     """Run this command explicitly; importing the module does not create artifacts."""
     import sys
-    import io
     import warnings
-    from pathlib import Path
 
     import pandas as pd
     import numpy as np
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    import seaborn as sns
 
     from sklearn.model_selection import (
         train_test_split,
@@ -33,9 +30,9 @@ def main():
         GridSearchCV,
         learning_curve,
     )
-    from sklearn.preprocessing import StandardScaler, LabelEncoder, PolynomialFeatures
+    from sklearn.preprocessing import StandardScaler
     from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet, LogisticRegression
-    from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
+    from sklearn.tree import DecisionTreeRegressor
     from sklearn.ensemble import (
         RandomForestRegressor,
         GradientBoostingRegressor,
@@ -58,7 +55,6 @@ def main():
         confusion_matrix,
         ConfusionMatrixDisplay,
     )
-    from sklearn.pipeline import Pipeline
 
     try:
         from imblearn.over_sampling import SMOTE
@@ -93,6 +89,11 @@ def main():
     REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
     COMPARE_PATH.parent.mkdir(parents=True, exist_ok=True)
 
+    from student_performance.features import (
+        build_regression_features, build_classification_features,
+    )
+    from student_performance.models import LinearRegressionScratch
+
     df = pd.read_csv(DATASET_PATH)
 
     print("=" * 70)
@@ -109,147 +110,8 @@ def main():
     print("   PHẦN 0: KHÁM PHÁ DỮ LIỆU (EDA)")
     print("=" * 70)
 
-    # 0.1 Phân phối GPA
-    fig, axes = plt.subplots(1, 3, figsize=(15, 4))
-    for i, col in enumerate(["gpa1", "gpa2", "gpa3"]):
-        data = df[df[col] > 0][col]
-        axes[i].hist(data, bins=25, color=["#4C72B0", "#55A868", "#C44E52"][i], edgecolor="white", alpha=0.85)
-        axes[i].set_title(f"Phân phối {col.upper()}", fontsize=12, fontweight="bold")
-        axes[i].set_xlabel("Điểm GPA")
-        axes[i].set_ylabel("Số sinh viên")
-        axes[i].axvline(data.mean(), color="red", linestyle="--", label=f"Mean={data.mean():.2f}")
-        axes[i].legend()
-    plt.tight_layout()
-    plt.savefig(FIGURES_DIR / "eda_gpa_distribution.png", dpi=150, bbox_inches="tight")
-    plt.close()
-    print("[EDA] Phân phối GPA 3 kỳ → reports/figures/eda_gpa_distribution.png")
-
-    # 0.2 Correlation Heatmap
-    numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
-    corr_cols = [c for c in numeric_cols if c != "stud_id"]
-    fig, ax = plt.subplots(figsize=(14, 10))
-    corr_matrix = df[corr_cols].corr()
-    mask = np.triu(np.ones_like(corr_matrix, dtype=bool), k=1)
-    sns.heatmap(corr_matrix, mask=mask, annot=True, fmt=".2f", cmap="RdBu_r",
-                center=0, ax=ax, square=True, linewidths=0.5,
-                cbar_kws={"shrink": 0.8})
-    ax.set_title("Ma trận tương quan giữa các biến số", fontsize=14, fontweight="bold")
-    plt.tight_layout()
-    plt.savefig(FIGURES_DIR / "eda_correlation_heatmap.png", dpi=150, bbox_inches="tight")
-    plt.close()
-    print("[EDA] Ma trận tương quan → reports/figures/eda_correlation_heatmap.png")
-
-    # 0.3 Boxplot các biến hành vi
-    fig, axes = plt.subplots(2, 3, figsize=(16, 8))
-    behavior_cols = [
-        ("So_Gio_Tu_Hoc_K1", "Giờ tự học K1"), ("So_Gio_Tu_Hoc_K2", "Giờ tự học K2"),
-        ("So_Lan_Tham_Gia_HD_K1", "Hoạt động K1"), ("So_Lan_Tham_Gia_HD_K2", "Hoạt động K2"),
-        ("Diem_Ren_Luyen_K1", "ĐRL K1"), ("Diem_Ren_Luyen_K2", "ĐRL K2"),
-    ]
-    for idx, (col, label) in enumerate(behavior_cols):
-        row, c = idx // 3, idx % 3
-        axes[row][c].boxplot(df[df[col] > 0][col].values, vert=True, patch_artist=True,
-                             boxprops=dict(facecolor="#4C72B0", alpha=0.7))
-        axes[row][c].set_title(label, fontsize=11, fontweight="bold")
-    plt.suptitle("Phân phối các biến hành vi K1 & K2", fontsize=14, fontweight="bold")
-    plt.tight_layout()
-    plt.savefig(FIGURES_DIR / "eda_behavior_boxplot.png", dpi=150, bbox_inches="tight")
-    plt.close()
-    print("[EDA] Boxplot biến hành vi → reports/figures/eda_behavior_boxplot.png")
-
-    # 0.4 Phân phối Xếp loại Học lực
-    fig, axes = plt.subplots(1, 2, figsize=(13, 5))
-    order_hl = ["Xuất sắc", "Giỏi", "Khá", "Trung bình", "Yếu"]
-    order_drl = ["Xuất sắc", "Tốt", "Khá", "Trung bình", "Yếu"]
-    colors = ["#2ecc71", "#3498db", "#f39c12", "#e74c3c", "#8e44ad"]
-
-    hl_counts = df["Xep_Loai_Hoc_Luc"].value_counts()
-    hl_data = [hl_counts.get(x, 0) for x in order_hl]
-    axes[0].barh(order_hl[::-1], hl_data[::-1], color=colors[::-1], edgecolor="white")
-    axes[0].set_title("Phân bố Xếp loại Học lực", fontsize=12, fontweight="bold")
-    for i, v in enumerate(hl_data[::-1]):
-        if v > 0:
-            axes[0].text(v + 2, i, str(v), va="center", fontweight="bold")
-
-    drl_counts = df["Xep_Loai_DRL"].value_counts()
-    drl_data = [drl_counts.get(x, 0) for x in order_drl]
-    axes[1].barh(order_drl[::-1], drl_data[::-1], color=colors[::-1], edgecolor="white")
-    axes[1].set_title("Phân bố Xếp loại Rèn luyện", fontsize=12, fontweight="bold")
-    for i, v in enumerate(drl_data[::-1]):
-        if v > 0:
-            axes[1].text(v + 2, i, str(v), va="center", fontweight="bold")
-    plt.tight_layout()
-    plt.savefig(FIGURES_DIR / "eda_classification_distribution.png", dpi=150, bbox_inches="tight")
-    plt.close()
-    print("[EDA] Phân bố xếp loại → reports/figures/eda_classification_distribution.png")
-
-
-    # ============================================================
-    # MÔ HÌNH TỰ CÀI ĐẶT: LINEAR REGRESSION (GRADIENT DESCENT)
-    # ============================================================
-    class LinearRegressionScratch:
-        """
-    Linear Regression tự cài đặt bằng Gradient Descent.
-    Công thức:
-        ŷ = X @ w + b
-        Loss = (1/2n) * Σ(ŷᵢ - yᵢ)²   (MSE / 2)
-        ∂L/∂w = (1/n) * Xᵀ @ (ŷ - y)
-        ∂L/∂b = (1/n) * Σ(ŷᵢ - yᵢ)
-    """
-
-        def __init__(self, learning_rate: float = 0.01, n_iterations: int = 1000, verbose: bool = False):
-            self.lr = learning_rate
-            self.n_iter = n_iterations
-            self.verbose = verbose
-            self.weights = None
-            self.bias = None
-            self.loss_history = []
-
-        def fit(self, X: np.ndarray, y: np.ndarray) -> "LinearRegressionScratch":
-            """Huấn luyện mô hình bằng Batch Gradient Descent."""
-            X = np.asarray(X, dtype=np.float64)
-            y = np.asarray(y, dtype=np.float64)
-            n_samples, n_features = X.shape
-
-            # Khởi tạo trọng số bằng 0
-            self.weights = np.zeros(n_features)
-            self.bias = 0.0
-            self.loss_history = []
-
-            for i in range(self.n_iter):
-                # Forward pass: ŷ = Xw + b
-                y_pred = X @ self.weights + self.bias
-
-                # Tính loss: MSE / 2
-                error = y_pred - y
-                loss = np.mean(error ** 2) / 2
-                self.loss_history.append(loss)
-
-                # Tính gradient
-                dw = (1 / n_samples) * (X.T @ error)
-                db = (1 / n_samples) * np.sum(error)
-
-                # Cập nhật trọng số
-                self.weights -= self.lr * dw
-                self.bias -= self.lr * db
-
-                if self.verbose and (i + 1) % (self.n_iter // 10) == 0:
-                    print(f"  Iteration {i+1}/{self.n_iter} | Loss: {loss:.6f}")
-
-            return self
-
-        def predict(self, X: np.ndarray) -> np.ndarray:
-            """Dự đoán giá trị đầu ra."""
-            X = np.asarray(X, dtype=np.float64)
-            return X @ self.weights + self.bias
-
-        def score(self, X: np.ndarray, y: np.ndarray) -> float:
-            """Trả về R² score."""
-            y_pred = self.predict(X)
-            ss_res = np.sum((y - y_pred) ** 2)
-            ss_tot = np.sum((y - np.mean(y)) ** 2)
-            return 1 - (ss_res / ss_tot)
-
+    from scripts.plots import plot_exploratory_data
+    plot_exploratory_data(df, FIGURES_DIR)
 
     # ============================================================
     # PHẦN 1: BÀI TOÁN HỒI QUY — DỰ ĐOÁN GPA3
@@ -263,31 +125,8 @@ def main():
     print(f"Số lượng mẫu huấn luyện: {len(df_active)} sinh viên (Active K3)")
 
     # Features: CHỈ DÙNG DỮ LIỆU K1 + K2 (+ Tín chỉ đã đăng ký K3)
-    features_reg = [
-        "gpa1", "Tin_Chi_K1", "So_Gio_Tu_Hoc_K1", "So_Lan_Tham_Gia_HD_K1", "Diem_Ren_Luyen_K1",
-        "gpa2", "Tin_Chi_K2", "So_Gio_Tu_Hoc_K2", "So_Lan_Tham_Gia_HD_K2", "Diem_Ren_Luyen_K2",
-        "Tin_Chi_K3",
-    ]
-    target_reg = "gpa3"
-
-    X_reg = df_active[features_reg].copy()
-    y_reg = df_active[target_reg].copy()
-
-    # Feature Engineering: thêm biến phái sinh
-    X_reg["gpa_trend"] = X_reg["gpa2"] - X_reg["gpa1"]  # Xu hướng học tập
-    X_reg["gpa_avg"] = (X_reg["gpa1"] + X_reg["gpa2"]) / 2  # GPA trung bình 2 kỳ
-    X_reg["study_hours_avg"] = (X_reg["So_Gio_Tu_Hoc_K1"] + X_reg["So_Gio_Tu_Hoc_K2"]) / 2
-    X_reg["drl_avg"] = (X_reg["Diem_Ren_Luyen_K1"] + X_reg["Diem_Ren_Luyen_K2"]) / 2
-    X_reg["activity_total"] = X_reg["So_Lan_Tham_Gia_HD_K1"] + X_reg["So_Lan_Tham_Gia_HD_K2"]
-    X_reg["credits_total_k12"] = X_reg["Tin_Chi_K1"] + X_reg["Tin_Chi_K2"]
-
-    # Iteration 2: Polynomial interactions cho top features
-    X_reg["gpa2_sq"] = X_reg["gpa2"] ** 2  # Phi tuyến
-    X_reg["gpa1_x_gpa2"] = X_reg["gpa1"] * X_reg["gpa2"]  # Tương tác
-    X_reg["gpa_trend_x_hours"] = X_reg["gpa_trend"] * X_reg["study_hours_avg"]  # Xu hướng × nỗ lực
-    X_reg["gpa2_x_drl"] = X_reg["gpa2"] * X_reg["drl_avg"] / 100  # GPA × ý thức (chuẩn hóa)
-    X_reg["study_trend"] = X_reg["So_Gio_Tu_Hoc_K2"] - X_reg["So_Gio_Tu_Hoc_K1"]  # Xu hướng tự học
-    X_reg["drl_trend"] = X_reg["Diem_Ren_Luyen_K2"] - X_reg["Diem_Ren_Luyen_K1"]  # Xu hướng rèn luyện
+    X_reg = build_regression_features(df_active)
+    y_reg = df_active["gpa3"].copy()
 
     features_reg_enhanced = list(X_reg.columns)
     print(f"Features sau Feature Engineering: {len(features_reg_enhanced)} biến")
@@ -657,20 +496,7 @@ def main():
     print("   PHẦN 2: PHÂN LOẠI — DỰ ĐOÁN NGUY CƠ BẢO LƯU/BỎ HỌC (status_K3)")
     print("=" * 70)
 
-    features_clf = [
-        "gpa1", "Tin_Chi_K1", "So_Gio_Tu_Hoc_K1", "So_Lan_Tham_Gia_HD_K1", "Diem_Ren_Luyen_K1",
-        "gpa2", "Tin_Chi_K2", "So_Gio_Tu_Hoc_K2", "So_Lan_Tham_Gia_HD_K2", "Diem_Ren_Luyen_K2",
-    ]
-
-    X_clf = df[features_clf].copy()
-    X_clf["gpa_trend"] = X_clf["gpa2"] - X_clf["gpa1"]
-    X_clf["gpa_avg"] = (X_clf["gpa1"] + X_clf["gpa2"]) / 2
-    X_clf["study_hours_avg"] = (X_clf["So_Gio_Tu_Hoc_K1"] + X_clf["So_Gio_Tu_Hoc_K2"]) / 2
-    X_clf["drl_avg"] = (X_clf["Diem_Ren_Luyen_K1"] + X_clf["Diem_Ren_Luyen_K2"]) / 2
-    X_clf["gpa2_sq"] = X_clf["gpa2"] ** 2
-    X_clf["gpa1_x_gpa2"] = X_clf["gpa1"] * X_clf["gpa2"]
-    X_clf["study_trend"] = X_clf["So_Gio_Tu_Hoc_K2"] - X_clf["So_Gio_Tu_Hoc_K1"]
-    X_clf["drl_trend"] = X_clf["Diem_Ren_Luyen_K2"] - X_clf["Diem_Ren_Luyen_K1"]
+    X_clf = build_classification_features(df)
 
     y_clf = (df["status_K3"] == "Leave").astype(int)
 
@@ -802,15 +628,7 @@ def main():
             print(f"  [Merge] '{cls}' ({rank_counts[cls]} mẫu) → '{merge_map[cls]}'")
     print(f"Phân bố sau gộp: {y_rank.value_counts().to_dict()}")
 
-    X_rank = df[features_clf].copy()
-    X_rank["gpa_trend"] = X_rank["gpa2"] - X_rank["gpa1"]
-    X_rank["gpa_avg"] = (X_rank["gpa1"] + X_rank["gpa2"]) / 2
-    X_rank["study_hours_avg"] = (X_rank["So_Gio_Tu_Hoc_K1"] + X_rank["So_Gio_Tu_Hoc_K2"]) / 2
-    X_rank["drl_avg"] = (X_rank["Diem_Ren_Luyen_K1"] + X_rank["Diem_Ren_Luyen_K2"]) / 2
-    X_rank["gpa2_sq"] = X_rank["gpa2"] ** 2
-    X_rank["gpa1_x_gpa2"] = X_rank["gpa1"] * X_rank["gpa2"]
-    X_rank["study_trend"] = X_rank["So_Gio_Tu_Hoc_K2"] - X_rank["So_Gio_Tu_Hoc_K1"]
-    X_rank["drl_trend"] = X_rank["Diem_Ren_Luyen_K2"] - X_rank["Diem_Ren_Luyen_K1"]
+    X_rank = build_classification_features(df)
 
     X_tr_rk, X_te_rk, y_tr_rk, y_te_rk = train_test_split(
         X_rank, y_rank, test_size=0.3, random_state=RANDOM_STATE, stratify=y_rank
@@ -905,21 +723,13 @@ def main():
     print("   PHẦN 4: XUẤT BẢNG SO SÁNH DỰ ĐOÁN vs ĐÁP ÁN")
     print("=" * 70)
 
-    # Dùng Ridge Regression (hoặc mô hình tốt nhất) cho GPA3
+    # Ưu tiên Ridge; dùng OLS nếu không có Ridge
     best_reg_for_compare = best_reg_models.get("Ridge Regression", best_reg_models.get("Linear Regression"))
     pred_gpa3 = np.round(best_reg_for_compare.predict(X_test_scaled), 2)
 
     # Dùng mô hình tốt nhất cho Xếp loại Học lực trên tập test regression
     # Cần tạo features tương ứng cho tập test regression
-    X_test_r_clf = X_test_r[features_clf].copy()
-    X_test_r_clf["gpa_trend"] = X_test_r_clf["gpa2"] - X_test_r_clf["gpa1"]
-    X_test_r_clf["gpa_avg"] = (X_test_r_clf["gpa1"] + X_test_r_clf["gpa2"]) / 2
-    X_test_r_clf["study_hours_avg"] = (X_test_r_clf["So_Gio_Tu_Hoc_K1"] + X_test_r_clf["So_Gio_Tu_Hoc_K2"]) / 2
-    X_test_r_clf["drl_avg"] = (X_test_r_clf["Diem_Ren_Luyen_K1"] + X_test_r_clf["Diem_Ren_Luyen_K2"]) / 2
-    X_test_r_clf["gpa2_sq"] = X_test_r_clf["gpa2"] ** 2
-    X_test_r_clf["gpa1_x_gpa2"] = X_test_r_clf["gpa1"] * X_test_r_clf["gpa2"]
-    X_test_r_clf["study_trend"] = X_test_r_clf["So_Gio_Tu_Hoc_K2"] - X_test_r_clf["So_Gio_Tu_Hoc_K1"]
-    X_test_r_clf["drl_trend"] = X_test_r_clf["Diem_Ren_Luyen_K2"] - X_test_r_clf["Diem_Ren_Luyen_K1"]
+    X_test_r_clf = build_classification_features(X_test_r)
 
     brm_compare, br_sc = best_rank_models[best_rank_name]
     if br_sc:
@@ -982,7 +792,7 @@ def main():
     print("   PHẦN 5: XUẤT BÁO CÁO KẾT QUẢ")
     print("=" * 70)
 
-    # Tìm mô hình hồi quy tốt nhất (theo R² Test, loại trừ overfitting)
+    # Chọn dòng có R² test cao nhất trong bảng kết quả
     df_reg_display = df_reg_res[["Model", "R² Train", "R² Test", "R² CV (5-fold)", "RMSE", "MAE", "MAPE (%)"]].copy()
     best_reg_row = df_reg_res.loc[df_reg_res["R² Test"].idxmax()]
 

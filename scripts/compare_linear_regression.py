@@ -13,7 +13,6 @@ def main():
     """Run this command explicitly; importing the module does not create artifacts."""
     import sys
     import time
-    from pathlib import Path
     import numpy as np
     import pandas as pd
     import matplotlib
@@ -39,74 +38,8 @@ def main():
     # ====================================================================
     # 1. CÀI ĐẶT THỦ CÔNG (SCRATCH / MANUAL IMPLEMENTATION)
     # ====================================================================
-    class LinearRegressionManual:
-        """
-    Mô hình Hồi quy Tuyến tính tự cài đặt thủ công.
-    Hỗ trợ 2 phương pháp giải:
-      1. 'gd' (Gradient Descent): Thuật toán tối ưu hóa theo gradient
-      2. 'normal_equation' (Giải tích OLS): Nghiệm trực tiếp w = (X^T * X)^(-1) * X^T * y
-    """
-        def __init__(self, method="gd", learning_rate=0.01, n_iterations=5000, verbose=False):
-            self.method = method
-            self.lr = learning_rate
-            self.n_iter = n_iterations
-            self.verbose = verbose
-            self.weights = None
-            self.bias = None
-            self.loss_history = []
-
-        def fit(self, X: np.ndarray, y: np.ndarray):
-            X = np.asarray(X, dtype=np.float64)
-            y = np.asarray(y, dtype=np.float64)
-            n_samples, n_features = X.shape
-
-            if self.method == "normal_equation":
-                # Thêm cột 1 vào đầu ma trận X để gộp luôn hệ số chặn bias b vào vector w
-                # X_b = [1, X]
-                # w_full = (X_b.T @ X_b)^(-1) @ X_b.T @ y
-                X_b = np.c_[np.ones((n_samples, 1)), X]
-                w_full = np.linalg.pinv(X_b.T @ X_b) @ X_b.T @ y
-                self.bias = float(w_full[0])
-                self.weights = w_full[1:]
-                return self
-
-            elif self.method == "gd":
-                # Gradient Descent
-                self.weights = np.zeros(n_features)
-                self.bias = 0.0
-                self.loss_history = []
-
-                for i in range(self.n_iter):
-                    # ŷ = X @ w + b
-                    y_pred = X @ self.weights + self.bias
-                    error = y_pred - y
-
-                    # Loss = MSE / 2
-                    loss = np.mean(error ** 2) / 2
-                    self.loss_history.append(loss)
-
-                    # Gradient
-                    dw = (1 / n_samples) * (X.T @ error)
-                    db = (1 / n_samples) * np.sum(error)
-
-                    # Cập nhật trọng số
-                    self.weights -= self.lr * dw
-                    self.bias -= self.lr * db
-
-                return self
-            else:
-                raise ValueError("Method must be 'gd' or 'normal_equation'")
-
-        def predict(self, X: np.ndarray) -> np.ndarray:
-            X = np.asarray(X, dtype=np.float64)
-            return X @ self.weights + self.bias
-
-        def score(self, X: np.ndarray, y: np.ndarray) -> float:
-            y_pred = self.predict(X)
-            ss_res = np.sum((y - y_pred) ** 2)
-            ss_tot = np.sum((y - np.mean(y)) ** 2)
-            return float(1 - (ss_res / ss_tot))
-
+    from student_performance.models import LinearRegressionManual
+    from student_performance.features import build_regression_features
 
     # ====================================================================
     # 2. CHUẨN BỊ DỮ LIỆU
@@ -127,18 +60,7 @@ def main():
         "So_Gio_Tu_Hoc_K1", "So_Gio_Tu_Hoc_K2",
         "So_Lan_Tham_Gia_HD_K1", "So_Lan_Tham_Gia_HD_K2",
     ]
-    df_reg["gpa_trend"] = df_reg["gpa2"] - df_reg["gpa1"]
-    df_reg["gpa_avg"] = (df_reg["gpa1"] + df_reg["gpa2"]) / 2
-    df_reg["study_hours_avg"] = (df_reg["So_Gio_Tu_Hoc_K1"] + df_reg["So_Gio_Tu_Hoc_K2"]) / 2
-    df_reg["study_trend"] = df_reg["So_Gio_Tu_Hoc_K2"] - df_reg["So_Gio_Tu_Hoc_K1"]
-    df_reg["drl_avg"] = (df_reg["Diem_Ren_Luyen_K1"] + df_reg["Diem_Ren_Luyen_K2"]) / 2
-    df_reg["drl_trend"] = df_reg["Diem_Ren_Luyen_K2"] - df_reg["Diem_Ren_Luyen_K1"]
-    df_reg["activity_total"] = df_reg["So_Lan_Tham_Gia_HD_K1"] + df_reg["So_Lan_Tham_Gia_HD_K2"]
-    df_reg["credits_total_k12"] = df_reg["Tin_Chi_K1"] + df_reg["Tin_Chi_K2"]
-    df_reg["gpa1_x_gpa2"] = df_reg["gpa1"] * df_reg["gpa2"]
-    df_reg["gpa2_sq"] = df_reg["gpa2"] ** 2
-    df_reg["gpa_trend_x_hours"] = df_reg["gpa_trend"] * df_reg["study_hours_avg"]
-    df_reg["gpa2_x_drl"] = df_reg["gpa2"] * df_reg["drl_avg"]
+    engineered = build_regression_features(df_reg)
 
     features_reg = features_base + [
         "gpa_trend", "gpa_avg", "study_hours_avg", "study_trend",
@@ -146,7 +68,9 @@ def main():
         "gpa1_x_gpa2", "gpa2_sq", "gpa_trend_x_hours", "gpa2_x_drl"
     ]
 
-    X = df_reg[features_reg].copy()
+    X = engineered[features_reg].copy()
+    # Preserve the standalone comparison script's historical unscaled interaction.
+    X["gpa2_x_drl"] = df_reg["gpa2"] * engineered["drl_avg"]
     y = df_reg["gpa3"].copy()
 
     # Chia tập Train / Test cố định (70% Train, 30% Test, random_state=42)
@@ -293,7 +217,7 @@ def main():
     ax1.set_xlim(lims)
     ax1.set_ylim(lims)
 
-    # Đồ thị 2: So sánh trực tiếp trọng số Weights (Top 10 đặc trưng lớn nhất)
+    # Đồ thị 2: So sánh trọng số của 8 đặc trưng được chọn
     ax2 = axes[1]
     top_features = df_weights.sort_values(by="W_Sklearn (Thư viện)", key=abs, ascending=False).head(8)
     y_pos = np.arange(len(top_features))

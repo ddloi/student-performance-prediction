@@ -7,13 +7,15 @@ Script sinh dataset sinh viên chuẩn hóa 24 cột (mặc định 1000 dòng):
 """
 
 
+import numpy as np
+import pandas as pd
+
+
 def main(total_rows: int = 1000, output_path: str = None):
     """Run this command explicitly; importing the module does not create artifacts."""
     import sys
     import argparse
     from pathlib import Path
-    import pandas as pd
-    import numpy as np
 
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
@@ -41,10 +43,27 @@ def main(total_rows: int = 1000, output_path: str = None):
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # ============================================================
-    # 1. DỮ LIỆU GỐC (100 DÒNG KAGGLE)
-    # ============================================================
-    df_raw = pd.read_csv(RAW_PATH)
+    source_students = read_source_students(RAW_PATH)
+    students = generate_students(source_students, total_rows)
+    students = add_semester_data(students)
+    students = calculate_summaries(students)
+    df_all = order_dataset_columns(students)
+
+    # Lưu file
+    try:
+        df_all.to_csv(output_path, index=False, encoding="utf-8-sig")
+        print(f"Đã lưu thành công vào file: {output_path}")
+    except PermissionError:
+        fallback = output_path.with_name(f"{output_path.stem}_new.csv")
+        df_all.to_csv(fallback, index=False, encoding="utf-8-sig")
+        print(f"File gốc đang bị khóa, đã lưu vào: {fallback}")
+
+    print(f"Shape: {df_all.shape}")
+    print(f"Danh sách 24 cột: {list(df_all.columns)}")
+
+
+def read_source_students(raw_path):
+    df_raw = pd.read_csv(raw_path)
     df_orig = pd.DataFrame()
     df_orig["stud_id"] = df_raw.loc[:99, "stud_id"].astype(int)
 
@@ -63,7 +82,10 @@ def main(total_rows: int = 1000, output_path: str = None):
 
     # ============================================================
     # 2. SINH DÒNG MỚI THEO PHÂN PHỐI GỐC (ID 101 ĐẾN total_rows)
-    # ============================================================
+    return df_orig
+
+
+def generate_students(df_orig, total_rows):
     np.random.seed(42)
     N_NEW = max(0, total_rows - len(df_orig))
 
@@ -93,11 +115,15 @@ def main(total_rows: int = 1000, output_path: str = None):
 
     # Gộp toàn bộ sinh viên
     df_all = pd.concat([df_orig, df_new], ignore_index=True)
-    n = len(df_all)
 
     # ============================================================
     # 3. SINH TÍN CHỈ VÀ BIẾN HÀNH VI THEO TRẠNG THÁI TỪNG KỲ
-    # ============================================================
+    return df_all
+
+
+def add_semester_data(data):
+    df_all = data.copy()
+    n = len(df_all)
     np.random.seed(42)
 
     # --- Học kỳ 1 (100% Active) ---
@@ -125,7 +151,11 @@ def main(total_rows: int = 1000, output_path: str = None):
 
     # ============================================================
     # 4. TỔNG KẾT TÍCH LŨY CHUẨN XÁC
-    # ============================================================
+    return df_all
+
+
+def calculate_summaries(data):
+    df_all = data.copy()
     df_all["Tong_Tin_Chi"] = df_all["Tin_Chi_K1"] + df_all["Tin_Chi_K2"] + df_all["Tin_Chi_K3"]
 
     # CGPA: Trọng số trên các tín chỉ thực học (kỳ Leave có Tin_Chi = 0 nên không phạt điểm)
@@ -185,7 +215,10 @@ def main(total_rows: int = 1000, output_path: str = None):
 
     # ============================================================
     # 5. SẮP XẾP THỨ TỰ 24 CỘT
-    # ============================================================
+    return df_all
+
+
+def order_dataset_columns(df_all):
     final_columns = [
         "stud_id",
         # Học kỳ 1
@@ -198,19 +231,8 @@ def main(total_rows: int = 1000, output_path: str = None):
         "Tong_Tin_Chi", "cgpa", "Diem_Ren_Luyen_TB", "Xep_Loai_DRL", "Xep_Loai_Hoc_Luc",
     ]
 
-    df_all = df_all[final_columns]
+    return df_all[final_columns]
 
-    # Lưu file
-    try:
-        df_all.to_csv(output_path, index=False, encoding="utf-8-sig")
-        print(f"Đã lưu thành công vào file: {output_path}")
-    except PermissionError:
-        fallback = output_path.with_name(f"{output_path.stem}_new.csv")
-        df_all.to_csv(fallback, index=False, encoding="utf-8-sig")
-        print(f"File gốc đang bị khóa, đã lưu vào: {fallback}")
-
-    print(f"Shape: {df_all.shape}")
-    print(f"Danh sách 24 cột: {list(df_all.columns)}")
 
 
 if __name__ == "__main__":

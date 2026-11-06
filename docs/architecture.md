@@ -8,11 +8,12 @@ This repository is an academic machine-learning demo with a FastAPI web applicat
 | --- | --- |
 | `student_performance/api.py` | HTTP routes, input validation, dataset lookup, static assets and downloads. |
 | `student_performance/engine.py` | Lazy loading of the web model cache, inference and demo ranking/warning rules. |
-| `student_performance/features.py` | Feature constants, ordering and preparation of input dictionaries. |
-| `student_performance/models.py` | Scratch regression class used by the web engine and referenced by serialized model objects. |
+| `student_performance/features.py` | Feature constants and shared batch/single-student preparation for training and inference. |
+| `student_performance/models.py` | Shared GD and manual OLS estimators, including the class referenced by serialized model objects. |
 | `student_performance/paths.py` | The single source of filesystem paths, anchored to this checkout rather than the working directory. |
 | `student_performance/cli.py` | Local launcher, available through `python -m student_performance`. |
 | `scripts/` | Workflows explicitly invoked with `python -m scripts.<name>`; imports must not generate data, train models or write reports. |
+| `scripts/plots.py` | EDA plot functions called explicitly by the training workflow. |
 | `tests/` | Discoverable `unittest` suites for API behavior, dataset consistency and structural compatibility. |
 | `static/` | The browser interface and locally bundled Chart.js, including its license. |
 | `data/raw/` | Input CSV used to construct the dataset. Keep its provenance distinct from generated data. |
@@ -53,6 +54,12 @@ Regenerating one artifact does not refresh every other artifact. In particular, 
 The existing artifact set is preserved during the structural refactor. Moving files does not constitute retraining or revalidation of the scientific results.
 
 ## Compatibility entry points
+
+Training, web inference and the standalone comparison now reuse `build_regression_features` and `build_classification_features`. Their output ordering is part of the saved scaler/model contract. The standalone comparison intentionally retains its historical `gpa2_x_drl` scale and feature order before standardization.
+
+`LinearRegressionScratch` lives in `student_performance.models`, rather than inside an experiment's `main()`. Both experiment scripts and the web engine use this implementation. `LinearRegressionManual` extends it with the existing pseudoinverse OLS branch. Dataset generation is separated into source preparation, synthetic rows, semester fields and cumulative summaries.
+
+The report download path points to the reviewed `Nhom5_Dự_đoán_kết_quả_học_tập_của_sinh_viên_bằng_Linear_Regression.docx` in `reports/`.
 
 - Root `app.py` remains a small compatibility entry so `uvicorn app:app` continues to work. New code should target `student_performance.api:app`.
 - Root `model_engine.py` keeps the old `model_engine.LinearRegressionScratch` lookup available. Older Joblib/Pickle files contain that module name; removing it could break deserialization even if the new implementation is identical.

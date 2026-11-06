@@ -1,4 +1,4 @@
-"""Input feature names and engineering shared by runtime inference."""
+"""Feature formulas and column order shared by training and inference."""
 
 import pandas as pd
 
@@ -18,61 +18,42 @@ FEATURE_ORDER_CLF = [
 ]
 
 
+BASE_FEATURES_CLF = FEATURE_ORDER_CLF[:10]
+BASE_FEATURES_REG = FEATURE_ORDER_REG[:11]
+DEFAULT_THIRD_SEMESTER_CREDITS = 15.0
+
+
+def _add_academic_features(frame: pd.DataFrame) -> None:
+    frame["gpa_trend"] = frame["gpa2"] - frame["gpa1"]
+    frame["gpa_avg"] = (frame["gpa1"] + frame["gpa2"]) / 2
+    frame["study_hours_avg"] = (frame["So_Gio_Tu_Hoc_K1"] + frame["So_Gio_Tu_Hoc_K2"]) / 2
+    frame["drl_avg"] = (frame["Diem_Ren_Luyen_K1"] + frame["Diem_Ren_Luyen_K2"]) / 2
+    frame["gpa2_sq"] = frame["gpa2"] ** 2
+    frame["gpa1_x_gpa2"] = frame["gpa1"] * frame["gpa2"]
+    frame["study_trend"] = frame["So_Gio_Tu_Hoc_K2"] - frame["So_Gio_Tu_Hoc_K1"]
+    frame["drl_trend"] = frame["Diem_Ren_Luyen_K2"] - frame["Diem_Ren_Luyen_K1"]
+
+
+def build_regression_features(data: pd.DataFrame) -> pd.DataFrame:
+    """Return 23 ordered features without changing the input table."""
+    frame = data[BASE_FEATURES_REG].copy()
+    _add_academic_features(frame)
+    frame["activity_total"] = frame["So_Lan_Tham_Gia_HD_K1"] + frame["So_Lan_Tham_Gia_HD_K2"]
+    frame["credits_total_k12"] = frame["Tin_Chi_K1"] + frame["Tin_Chi_K2"]
+    frame["gpa_trend_x_hours"] = frame["gpa_trend"] * frame["study_hours_avg"]
+    frame["gpa2_x_drl"] = frame["gpa2"] * frame["drl_avg"] / 100
+    return frame[FEATURE_ORDER_REG]
+
+
+def build_classification_features(data: pd.DataFrame) -> pd.DataFrame:
+    """Return 18 ordered features using only semesters 1 and 2."""
+    frame = data[BASE_FEATURES_CLF].copy()
+    _add_academic_features(frame)
+    return frame[FEATURE_ORDER_CLF]
+
+
 def engineer_features_dict(data: dict) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Tạo feature engineering từ dictionary nhập vào."""
-    # Dataframe hồi quy (23 features)
-    df_reg = pd.DataFrame([{
-        "gpa1": float(data["gpa1"]),
-        "Tin_Chi_K1": float(data["Tin_Chi_K1"]),
-        "So_Gio_Tu_Hoc_K1": float(data["So_Gio_Tu_Hoc_K1"]),
-        "So_Lan_Tham_Gia_HD_K1": float(data["So_Lan_Tham_Gia_HD_K1"]),
-        "Diem_Ren_Luyen_K1": float(data["Diem_Ren_Luyen_K1"]),
-        "gpa2": float(data["gpa2"]),
-        "Tin_Chi_K2": float(data["Tin_Chi_K2"]),
-        "So_Gio_Tu_Hoc_K2": float(data["So_Gio_Tu_Hoc_K2"]),
-        "So_Lan_Tham_Gia_HD_K2": float(data["So_Lan_Tham_Gia_HD_K2"]),
-        "Diem_Ren_Luyen_K2": float(data["Diem_Ren_Luyen_K2"]),
-        "Tin_Chi_K3": float(data.get("Tin_Chi_K3", 15.0)),
-    }])
-
-    df_reg["gpa_trend"] = df_reg["gpa2"] - df_reg["gpa1"] #GPA kỳ 2 giảm
-    df_reg["gpa_avg"] = (df_reg["gpa1"] + df_reg["gpa2"]) / 2 #GPT trung bình 2 kỳ
-    df_reg["study_hours_avg"] = (df_reg["So_Gio_Tu_Hoc_K1"] + df_reg["So_Gio_Tu_Hoc_K2"]) / 2   #TB số giờ tự học 2 kỳ
-    df_reg["drl_avg"] = (df_reg["Diem_Ren_Luyen_K1"] + df_reg["Diem_Ren_Luyen_K2"]) / 2 #TB điểm rèn luyện 2 kỳ
-    df_reg["activity_total"] = df_reg["So_Lan_Tham_Gia_HD_K1"] + df_reg["So_Lan_Tham_Gia_HD_K2"]
-    df_reg["credits_total_k12"] = df_reg["Tin_Chi_K1"] + df_reg["Tin_Chi_K2"] #Tổng số tín chỉ 2 kỳ
-    df_reg["gpa2_sq"] = df_reg["gpa2"] ** 2 #Đặc trưng bình phương
-    df_reg["gpa1_x_gpa2"] = df_reg["gpa1"] * df_reg["gpa2"] #tương tác 2 GPA
-    df_reg["gpa_trend_x_hours"] = df_reg["gpa_trend"] * df_reg["study_hours_avg"] #Tương tác giữa xu hướng GPA và số giờ tự học trung bình
-    df_reg["gpa2_x_drl"] = df_reg["gpa2"] * df_reg["drl_avg"] / 100
-    df_reg["study_trend"] = df_reg["So_Gio_Tu_Hoc_K2"] - df_reg["So_Gio_Tu_Hoc_K1"] #Gio tự học kỳ 2 thay đổi so với kỳ 1
-    df_reg["drl_trend"] = df_reg["Diem_Ren_Luyen_K2"] - df_reg["Diem_Ren_Luyen_K1"] #Điểm rèn luyện kỳ 2 thay đổi so với kỳ 1
-
-    df_reg = df_reg[FEATURE_ORDER_REG]
-
-    # Dataframe phân loại (18 features)
-    df_clf = pd.DataFrame([{
-        "gpa1": float(data["gpa1"]),
-        "Tin_Chi_K1": float(data["Tin_Chi_K1"]),
-        "So_Gio_Tu_Hoc_K1": float(data["So_Gio_Tu_Hoc_K1"]),
-        "So_Lan_Tham_Gia_HD_K1": float(data["So_Lan_Tham_Gia_HD_K1"]),
-        "Diem_Ren_Luyen_K1": float(data["Diem_Ren_Luyen_K1"]),
-        "gpa2": float(data["gpa2"]),
-        "Tin_Chi_K2": float(data["Tin_Chi_K2"]),
-        "So_Gio_Tu_Hoc_K2": float(data["So_Gio_Tu_Hoc_K2"]),
-        "So_Lan_Tham_Gia_HD_K2": float(data["So_Lan_Tham_Gia_HD_K2"]),
-        "Diem_Ren_Luyen_K2": float(data["Diem_Ren_Luyen_K2"]),
-    }])
-    df_clf["gpa_trend"] = df_clf["gpa2"] - df_clf["gpa1"]
-    df_clf["gpa_avg"] = (df_clf["gpa1"] + df_clf["gpa2"]) / 2
-    df_clf["study_hours_avg"] = (df_clf["So_Gio_Tu_Hoc_K1"] + df_clf["So_Gio_Tu_Hoc_K2"]) / 2
-    df_clf["drl_avg"] = (df_clf["Diem_Ren_Luyen_K1"] + df_clf["Diem_Ren_Luyen_K2"]) / 2
-    df_clf["gpa2_sq"] = df_clf["gpa2"] ** 2
-    df_clf["gpa1_x_gpa2"] = df_clf["gpa1"] * df_clf["gpa2"]
-    df_clf["study_trend"] = df_clf["So_Gio_Tu_Hoc_K2"] - df_clf["So_Gio_Tu_Hoc_K1"]
-    df_clf["drl_trend"] = df_clf["Diem_Ren_Luyen_K2"] - df_clf["Diem_Ren_Luyen_K1"]
-
-    df_clf = df_clf[FEATURE_ORDER_CLF]
-
-    return df_reg, df_clf
-
+    values = {name: float(data[name]) for name in BASE_FEATURES_CLF}
+    values["Tin_Chi_K3"] = float(data.get("Tin_Chi_K3", DEFAULT_THIRD_SEMESTER_CREDITS))
+    frame = pd.DataFrame([values])
+    return build_regression_features(frame), build_classification_features(frame)

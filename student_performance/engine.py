@@ -14,7 +14,10 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression, Ridge, Lasso
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier, GradientBoostingClassifier
 
-from .features import FEATURE_ORDER_REG, FEATURE_ORDER_CLF, engineer_features_dict
+from .features import (
+    FEATURE_ORDER_REG, engineer_features_dict,
+    build_regression_features, build_classification_features,
+)
 from .models import LinearRegressionScratch
 from .paths import DATASET_PATH, MODEL_CACHE_PATH
 
@@ -67,29 +70,17 @@ class MLModelManager:
 
     def train_all(self):
         print("[Engine] Training models from dataset...")
-        df = pd.read_csv(DATASET_PATH)
+        data = pd.read_csv(DATASET_PATH)
+        self._train_regression_models(data)
+        classification_features = build_classification_features(data)
+        self._train_leave_model(data, classification_features)
+        self._train_rank_model(data, classification_features)
+        self.is_trained = True
+        self._save_cache()
 
-        # 1. Hồi quy GPA3 trên tập Active K3
+    def _train_regression_models(self, df):
         df_active = df[df["status_K3"] == "Active"].copy()
-        features_base = [
-            "gpa1", "Tin_Chi_K1", "So_Gio_Tu_Hoc_K1", "So_Lan_Tham_Gia_HD_K1", "Diem_Ren_Luyen_K1",
-            "gpa2", "Tin_Chi_K2", "So_Gio_Tu_Hoc_K2", "So_Lan_Tham_Gia_HD_K2", "Diem_Ren_Luyen_K2",
-            "Tin_Chi_K3",
-        ]
-        X_reg = df_active[features_base].copy()
-        X_reg["gpa_trend"] = X_reg["gpa2"] - X_reg["gpa1"]
-        X_reg["gpa_avg"] = (X_reg["gpa1"] + X_reg["gpa2"]) / 2
-        X_reg["study_hours_avg"] = (X_reg["So_Gio_Tu_Hoc_K1"] + X_reg["So_Gio_Tu_Hoc_K2"]) / 2
-        X_reg["drl_avg"] = (X_reg["Diem_Ren_Luyen_K1"] + X_reg["Diem_Ren_Luyen_K2"]) / 2
-        X_reg["activity_total"] = X_reg["So_Lan_Tham_Gia_HD_K1"] + X_reg["So_Lan_Tham_Gia_HD_K2"]
-        X_reg["credits_total_k12"] = X_reg["Tin_Chi_K1"] + X_reg["Tin_Chi_K2"]
-        X_reg["gpa2_sq"] = X_reg["gpa2"] ** 2
-        X_reg["gpa1_x_gpa2"] = X_reg["gpa1"] * X_reg["gpa2"]
-        X_reg["gpa_trend_x_hours"] = X_reg["gpa_trend"] * X_reg["study_hours_avg"]
-        X_reg["gpa2_x_drl"] = X_reg["gpa2"] * X_reg["drl_avg"] / 100
-        X_reg["study_trend"] = X_reg["So_Gio_Tu_Hoc_K2"] - X_reg["So_Gio_Tu_Hoc_K1"]
-        X_reg["drl_trend"] = X_reg["Diem_Ren_Luyen_K2"] - X_reg["Diem_Ren_Luyen_K1"]
-        X_reg = X_reg[FEATURE_ORDER_REG]
+        X_reg = build_regression_features(df_active)
         y_reg = df_active["gpa3"].values
 
         X_train_r, X_test_r, y_train_r, y_test_r = train_test_split(
@@ -117,22 +108,7 @@ class MLModelManager:
         self.rf_reg_model = RandomForestRegressor(n_estimators=150, max_depth=6, random_state=RANDOM_STATE)
         self.rf_reg_model.fit(X_train_r.values, y_train_r)
 
-        # 2. Phân loại Nguy cơ Bảo lưu/Thôi học (status_K3)
-        features_clf_base = [
-            "gpa1", "Tin_Chi_K1", "So_Gio_Tu_Hoc_K1", "So_Lan_Tham_Gia_HD_K1", "Diem_Ren_Luyen_K1",
-            "gpa2", "Tin_Chi_K2", "So_Gio_Tu_Hoc_K2", "So_Lan_Tham_Gia_HD_K2", "Diem_Ren_Luyen_K2",
-        ]
-        X_clf = df[features_clf_base].copy()
-        X_clf["gpa_trend"] = X_clf["gpa2"] - X_clf["gpa1"]
-        X_clf["gpa_avg"] = (X_clf["gpa1"] + X_clf["gpa2"]) / 2
-        X_clf["study_hours_avg"] = (X_clf["So_Gio_Tu_Hoc_K1"] + X_clf["So_Gio_Tu_Hoc_K2"]) / 2
-        X_clf["drl_avg"] = (X_clf["Diem_Ren_Luyen_K1"] + X_clf["Diem_Ren_Luyen_K2"]) / 2
-        X_clf["gpa2_sq"] = X_clf["gpa2"] ** 2
-        X_clf["gpa1_x_gpa2"] = X_clf["gpa1"] * X_clf["gpa2"]
-        X_clf["study_trend"] = X_clf["So_Gio_Tu_Hoc_K2"] - X_clf["So_Gio_Tu_Hoc_K1"]
-        X_clf["drl_trend"] = X_clf["Diem_Ren_Luyen_K2"] - X_clf["Diem_Ren_Luyen_K1"]
-        X_clf = X_clf[FEATURE_ORDER_CLF]
-
+    def _train_leave_model(self, df, X_clf):
         y_leave = (df["status_K3"] == "Leave").astype(int).values
         X_tr_l, _, y_tr_l, _ = train_test_split(
             X_clf, y_leave, test_size=0.3, random_state=RANDOM_STATE, stratify=y_leave
@@ -141,7 +117,7 @@ class MLModelManager:
         self.clf_leave_model = GradientBoostingClassifier(n_estimators=100, max_depth=3, random_state=RANDOM_STATE)
         self.clf_leave_model.fit(X_tr_l_s, y_tr_l)
 
-        # 3. Phân loại Xếp loại Học Lực
+    def _train_rank_model(self, df, X_clf):
         y_rank = df["Xep_Loai_Hoc_Luc"].copy()
         # Merge hiếm mẫu
         merge_map = {"Yếu": "Trung bình", "Trung bình": "Khá"}
@@ -156,9 +132,7 @@ class MLModelManager:
         self.clf_rank_model = RandomForestClassifier(n_estimators=200, max_depth=7, random_state=RANDOM_STATE)
         self.clf_rank_model.fit(X_tr_rk.values, y_tr_rk)
 
-        self.is_trained = True
-
-        # Lưu cache
+    def _save_cache(self):
         payload = {
             "scaler_reg": self.scaler_reg,
             "scaler_clf_leave": self.scaler_clf_leave,
@@ -207,11 +181,44 @@ class MLModelManager:
         X_clf_s = self.scaler_clf_leave.transform(df_clf)
         leave_prob = float(self.clf_leave_model.predict_proba(X_clf_s)[0][1])
 
-        # Quy chế Cảnh Báo Học Vụ (Thông tư 08/2021/TT-BGDĐT):
-        # CHỈ dựa trên trung bình GPA 3 kỳ — ĐRL KHÔNG ảnh hưởng đến cảnh báo thôi học.
-        # 1. TB GPA 3 kỳ < 2.00: CẢNH BÁO CAO (Nguy cơ buộc thôi học)
-        # 2. TB GPA 3 kỳ 2.00 - 2.49 kèm xu hướng giảm: CẦN LƯU Ý
-        # 3. TB GPA 3 kỳ >= 2.50: AN TOÀN (không cảnh báo)
+        leave_risk = self._evaluate_leave_risk(data, main_gpa, leave_prob)
+
+        # Điểm rèn luyện kỳ 3 dự kiến; chỉ dùng trung bình K1 và K2 khi không nhập.
+        drl_k3_input = data.get("Diem_Ren_Luyen_K3")
+        drl_avg_k12 = (float(data["Diem_Ren_Luyen_K1"]) + float(data["Diem_Ren_Luyen_K2"])) / 2
+        drl_eval = float(drl_k3_input) if drl_k3_input is not None else drl_avg_k12
+
+        # Phân loại học lực & rèn luyện tổng hợp theo quy chế Bộ GD&ĐT
+        rank_details = self.evaluate_student_rank(main_gpa, drl_eval)
+        rule_rank = rank_details["final_rank"]
+
+        return {
+            "selected_model": selected_model,
+            "predicted_gpa3": round(main_gpa, 2),
+            "predicted_rank_ml": pred_rank,
+            "predicted_rank_rule": rule_rank,
+            "rank_details": rank_details,
+            "leave_risk": leave_risk,
+            "model_comparison": {
+                "Linear Regression (Scratch GD)": round(pred_scratch, 2),
+                "Linear Regression (sklearn OLS)": round(pred_sklearn, 2),
+                "Ridge Regression": round(pred_ridge, 2),
+                "Random Forest Regressor": round(pred_rf, 2),
+            },
+            "features_summary": {
+                "gpa1": float(data["gpa1"]),
+                "gpa2": float(data["gpa2"]),
+                "gpa_trend": round(float(data["gpa2"]) - float(data["gpa1"]), 2),
+                "drl_avg": round(drl_avg_k12, 1),
+                "drl_eval": round(drl_eval, 1),
+                "study_hours_avg": round((float(data["So_Gio_Tu_Hoc_K1"]) + float(data["So_Gio_Tu_Hoc_K2"])) / 2, 1),
+                "activity_total": int(float(data["So_Lan_Tham_Gia_HD_K1"]) + float(data["So_Lan_Tham_Gia_HD_K2"]))
+            }
+        }
+
+    @staticmethod
+    def _evaluate_leave_risk(data, main_gpa, leave_prob):
+        """Apply the existing demo warning thresholds; this is not calibrated risk."""
         gpa1_val = float(data.get("gpa1", 3.0))
         gpa2_val = float(data.get("gpa2", 3.0))
         gpa_avg_3sem = (gpa1_val + gpa2_val + main_gpa) / 3.0
@@ -234,42 +241,11 @@ class MLModelManager:
             risk_prob = min(round(leave_prob * 100, 1), 2.5) if main_gpa >= 3.2 else min(round(leave_prob * 100, 1), 5.5)
             risk_desc = f"TB GPA 3 kỳ ({gpa_avg_3sem:.2f}) ổn định, không có nguy cơ học vụ"
 
-        # Điểm rèn luyện kỳ 3 dự kiến; chỉ dùng trung bình K1 và K2 khi không nhập.
-        drl_k3_input = data.get("Diem_Ren_Luyen_K3")
-        drl_avg_k12 = (float(data["Diem_Ren_Luyen_K1"]) + float(data["Diem_Ren_Luyen_K2"])) / 2
-        drl_eval = float(drl_k3_input) if drl_k3_input is not None else drl_avg_k12
-
-        # Phân loại học lực & rèn luyện tổng hợp theo quy chế Bộ GD&ĐT
-        rank_details = self.evaluate_student_rank(main_gpa, drl_eval)
-        rule_rank = rank_details["final_rank"]
-
         return {
-            "selected_model": selected_model,
-            "predicted_gpa3": round(main_gpa, 2),
-            "predicted_rank_ml": pred_rank,
-            "predicted_rank_rule": rule_rank,
-            "rank_details": rank_details,
-            "leave_risk": {
-                "is_risk": is_leave_risk,
-                "probability": risk_prob,
-                "level": risk_level,
-                "description": risk_desc
-            },
-            "model_comparison": {
-                "Linear Regression (Scratch GD)": round(pred_scratch, 2),
-                "Linear Regression (sklearn OLS)": round(pred_sklearn, 2),
-                "Ridge Regression": round(pred_ridge, 2),
-                "Random Forest Regressor": round(pred_rf, 2),
-            },
-            "features_summary": {
-                "gpa1": float(data["gpa1"]),
-                "gpa2": float(data["gpa2"]),
-                "gpa_trend": round(float(data["gpa2"]) - float(data["gpa1"]), 2),
-                "drl_avg": round(drl_avg_k12, 1),
-                "drl_eval": round(drl_eval, 1),
-                "study_hours_avg": round((float(data["So_Gio_Tu_Hoc_K1"]) + float(data["So_Gio_Tu_Hoc_K2"])) / 2, 1),
-                "activity_total": int(float(data["So_Lan_Tham_Gia_HD_K1"]) + float(data["So_Lan_Tham_Gia_HD_K2"]))
-            }
+            "is_risk": is_leave_risk,
+            "probability": risk_prob,
+            "level": risk_level,
+            "description": risk_desc,
         }
 
     @staticmethod

@@ -97,14 +97,15 @@ student-performance-prediction/
 ├── student_performance/          # Application package
 │   ├── api.py                   # HTTP routes and input validation
 │   ├── engine.py                # Lazy cache loading and inference
-│   ├── features.py              # Feature definitions and preparation
-│   ├── models.py                # Scratch regression model
+│   ├── features.py              # Shared batch and single-student features
+│   ├── models.py                # Shared GD and manual OLS estimators
 │   ├── paths.py                 # Paths anchored to the project root
 │   └── cli.py                   # Local launcher; __main__.py enables -m
 ├── scripts/                     # Explicit dataset, experiment and report commands
 │   ├── generate_dataset.py
 │   ├── train_models.py
 │   ├── compare_linear_regression.py
+│   ├── plots.py                 # EDA plot functions
 │   └── generate_report.py
 ├── tests/                       # Dataset, API and structure regression tests
 ├── data/
@@ -116,7 +117,7 @@ student-performance-prediction/
 ├── reports/
 │   ├── figures/                 # Saved research plots
 │   ├── model_training_results.md
-│   └── BaoCao_DoAn_HocMay.docx
+│   └── Nhom5_…_Linear_Regression.docx
 ├── static/                      # HTML, CSS, JavaScript and local Chart.js
 ├── docs/architecture.md         # Responsibilities and artifact lifecycle
 ├── app.py                       # Compatibility for uvicorn app:app
@@ -188,7 +189,7 @@ The full experiment script and the web inference engine have separate training p
 python -m student_performance.engine --retrain
 ```
 
-Restart the web server after rebuilding the cache. Changing the processed dataset or regenerating a report also does not automatically synchronize all artifacts. Keep the model cache, prediction CSV, saved metrics and Word report aligned deliberately when repeating an experiment. The `/api/models-summary` endpoint reads the saved experiment report. The Word download serves the reviewed 1,000-sample report at `reports/BaoCao_DoAn_HocMay.docx`.
+Restart the web server after rebuilding the cache. Changing the processed dataset or regenerating a report also does not automatically synchronize all artifacts. Keep the model cache, prediction CSV, saved metrics and Word report aligned deliberately when repeating an experiment. The `/api/models-summary` endpoint reads the saved experiment report. The Word download serves the reviewed 1,000-sample report at `reports/Nhom5_Dự_đoán_kết_quả_học_tập_của_sinh_viên_bằng_Linear_Regression.docx`.
 
 ---
 

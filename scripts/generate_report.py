@@ -9,16 +9,13 @@ Chạy: python -m scripts.generate_report
 def main():
     """Run this command explicitly; importing the module does not create artifacts."""
     import sys
-    import io
     from pathlib import Path
-    from datetime import datetime
 
     from docx import Document
-    from docx.shared import Inches, Pt, Cm, RGBColor, Emu
+    from docx.shared import Inches, Pt, Cm, RGBColor
     from docx.enum.text import WD_ALIGN_PARAGRAPH
     from docx.enum.table import WD_TABLE_ALIGNMENT
-    from docx.enum.section import WD_ORIENT
-    from docx.oxml.ns import qn, nsdecls
+    from docx.oxml.ns import nsdecls
     from docx.oxml import parse_xml
 
     if hasattr(sys.stdout, "reconfigure"):
